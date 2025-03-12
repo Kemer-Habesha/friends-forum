@@ -1,13 +1,14 @@
-# 1️⃣ Use a multi-stage build for efficiency
+
+# 1️⃣ Use a stable and up-to-date Node.js version
 FROM node:20-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
 
-# Copy only package files first to leverage Docker caching
+# Copy package files first (for better caching)
 COPY package.json package-lock.json ./
 
-# Install dependencies
+# Install dependencies efficiently
 RUN npm ci --legacy-peer-deps
 
 # Copy the rest of the application files
@@ -34,5 +35,5 @@ ENV PORT=3000
 # Expose the port
 EXPOSE 3000
 
-# Start the Next.js Vite server
+# Start the Next.js server in production mode
 CMD ["npm", "run", "start"]
