@@ -5,10 +5,12 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
+  const { openLoginModal, openSignupModal } = useAuth()
 
   const isActive = (path: string) => {
     return pathname === path
@@ -92,10 +94,12 @@ export default function Header() {
           </Link>
         </nav>
         <div className="flex items-center gap-4">
-          <Button variant="outline" className="hidden md:flex">
+          <Button variant="outline" className="hidden md:flex" onClick={openLoginModal}>
             Sign In
           </Button>
-          <Button className="hidden md:flex">Join Us</Button>
+          <Button className="hidden md:flex" onClick={openSignupModal}>
+            Join Us
+          </Button>
           <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -184,10 +188,25 @@ export default function Header() {
               </Link>
             </nav>
             <div className="flex flex-col space-y-2">
-              <Button variant="outline" className="w-full">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setIsMenuOpen(false)
+                  openLoginModal()
+                }}
+              >
                 Sign In
               </Button>
-              <Button className="w-full">Join Us</Button>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setIsMenuOpen(false)
+                  openSignupModal()
+                }}
+              >
+                Join Us
+              </Button>
             </div>
           </div>
         </div>

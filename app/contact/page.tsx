@@ -1,10 +1,60 @@
+"use client"
+
+import type React from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail, Phone, MapPin } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { useState } from "react"
 
 export default function ContactPage() {
+  const { openSignupModal } = useAuth()
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    subject: "",
+    message: "",
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    // Simulate form submission
+    setTimeout(() => {
+      console.log("Form submitted:", formData)
+      setIsSubmitting(false)
+      setIsSuccess(true)
+
+      // Reset form after success
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        subject: "",
+        message: "",
+      })
+
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setIsSuccess(false)
+      }, 3000)
+    }, 1000)
+  }
+
   return (
     <>
       <section className="bg-muted py-12 md:py-24">
@@ -28,25 +78,43 @@ export default function ContactPage() {
                 We'd love to hear from you. Fill out the form below and we'll get back to you as soon as possible.
               </p>
             </div>
-            <form className="space-y-4">
+            {isSuccess && (
+              <div className="bg-green-50 border border-green-200 text-green-800 rounded-md p-4">
+                <p className="font-medium">Thank you for your message!</p>
+                <p className="text-sm">We'll get back to you as soon as possible.</p>
+              </div>
+            )}
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label
-                    htmlFor="first-name"
+                    htmlFor="firstName"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     First Name
                   </label>
-                  <Input id="first-name" placeholder="Enter your first name" />
+                  <Input
+                    id="firstName"
+                    placeholder="Enter your first name"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <label
-                    htmlFor="last-name"
+                    htmlFor="lastName"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
                     Last Name
                   </label>
-                  <Input id="last-name" placeholder="Enter your last name" />
+                  <Input
+                    id="lastName"
+                    placeholder="Enter your last name"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
                 </div>
               </div>
               <div className="space-y-2">
@@ -56,7 +124,14 @@ export default function ContactPage() {
                 >
                   Email
                 </label>
-                <Input id="email" type="email" placeholder="Enter your email" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <label
@@ -65,7 +140,13 @@ export default function ContactPage() {
                 >
                   Subject
                 </label>
-                <Input id="subject" placeholder="Enter the subject" />
+                <Input
+                  id="subject"
+                  placeholder="Enter the subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <label
@@ -74,10 +155,17 @@ export default function ContactPage() {
                 >
                   Message
                 </label>
-                <Textarea id="message" placeholder="Enter your message" className="min-h-32" />
+                <Textarea
+                  id="message"
+                  placeholder="Enter your message"
+                  className="min-h-32"
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                />
               </div>
-              <Button type="submit" className="w-full">
-                Send Message
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Sending..." : "Send Message"}
               </Button>
             </form>
           </div>

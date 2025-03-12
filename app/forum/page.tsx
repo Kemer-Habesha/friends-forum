@@ -1,10 +1,29 @@
+"use client"
+
+import type React from "react"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, MessageSquare, Users, Clock, ArrowRight } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function ForumPage() {
+  const { openSignupModal } = useAuth()
+  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [activeFilter, setActiveFilter] = useState<"latest" | "active" | "unanswered">("latest")
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      alert(`Searching for: ${searchQuery}`)
+    }
+  }
+
   return (
     <>
       <section className="bg-muted py-12 md:py-24">
@@ -16,7 +35,9 @@ export default function ForumPage() {
               region.
             </p>
             <div className="pt-4 flex justify-center">
-              <Button size="lg">Join the Conversation</Button>
+              <Button size="lg" onClick={openSignupModal}>
+                Join the Conversation
+              </Button>
             </div>
           </div>
         </div>
@@ -25,22 +46,39 @@ export default function ForumPage() {
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
           <div className="max-w-3xl mx-auto">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input placeholder="Search discussions..." className="pl-10" />
-            </div>
+              <Input
+                placeholder="Search discussions..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <h2 className="text-3xl font-bold tracking-tight">Popular Discussions</h2>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button
+                variant={activeFilter === "latest" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveFilter("latest")}
+              >
                 Latest
               </Button>
-              <Button variant="outline" size="sm">
+              <Button
+                variant={activeFilter === "active" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveFilter("active")}
+              >
                 Most Active
               </Button>
-              <Button variant="outline" size="sm">
+              <Button
+                variant={activeFilter === "unanswered" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveFilter("unanswered")}
+              >
                 Unanswered
               </Button>
             </div>
@@ -97,7 +135,14 @@ export default function ForumPage() {
                     <p className="text-xs text-muted-foreground">Research Coordinator</p>
                   </div>
                   <div className="ml-auto">
-                    <Button>View Discussion</Button>
+                    <Button
+                      onClick={() => {
+                        // In a real app, this would navigate to the discussion
+                        alert("Viewing discussion...")
+                      }}
+                    >
+                      View Discussion
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -105,7 +150,15 @@ export default function ForumPage() {
           </div>
 
           <div className="flex justify-center">
-            <Button variant="outline">Load More Discussions</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                // In a real app, this would load more discussions
+                alert("Loading more discussions...")
+              }}
+            >
+              Load More Discussions
+            </Button>
           </div>
         </div>
       </section>
@@ -181,7 +234,7 @@ export default function ForumPage() {
               engage with researchers, experts, and stakeholders from across the Nile Basin region.
             </p>
             <div className="pt-4">
-              <Button>Create New Topic</Button>
+              <Button onClick={openSignupModal}>Create New Topic</Button>
             </div>
           </div>
           <div className="relative h-[400px] rounded-lg overflow-hidden">

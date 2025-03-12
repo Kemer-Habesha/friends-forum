@@ -1,10 +1,17 @@
+"use client"
+
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
 import NewsletterForm from "@/components/ui/newsletter-form"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function Home() {
+  const { openSignupModal } = useAuth()
+  const router = useRouter()
+
   return (
     <>
       <section className="relative">
@@ -28,10 +35,15 @@ export default function Home() {
                 An international platform for research, knowledge exchange, and development support
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto" onClick={openSignupModal}>
                   Get Involved
                 </Button>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/90 hover:bg-white">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full sm:w-auto bg-white/90 hover:bg-white"
+                  onClick={() => router.push("/about")}
+                >
                   Learn More
                 </Button>
               </div>
@@ -122,7 +134,13 @@ export default function Home() {
                   <span>Virtual Event</span>
                 </div>
                 <div className="mt-4">
-                  <Button variant="outline" className="w-full">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      openSignupModal()
+                    }}
+                  >
                     Register Now
                   </Button>
                 </div>
@@ -227,7 +245,7 @@ export default function Home() {
               </li>
             </ul>
             <div className="pt-4">
-              <Button>Join the Forum</Button>
+              <Button onClick={() => router.push("/forum")}>Join the Forum</Button>
             </div>
           </div>
         </div>
