@@ -14,7 +14,7 @@ RUN npm ci --legacy-peer-deps
 # Copy the rest of the application files
 COPY . .
 
-# 2️⃣ Build the Next.js Vite project
+# 2️⃣ Build the Next.js project
 RUN npm run build && \
     npm prune --production  # Remove dev dependencies to reduce image size
 
