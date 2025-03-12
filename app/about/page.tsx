@@ -1,8 +1,14 @@
+"use client"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Users, BookOpen, Droplet, Lightbulb } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
+import { useRouter } from "next/navigation"
 
 export default function AboutPage() {
+  const { openSignupModal } = useAuth()
+  const router = useRouter()
+
   return (
     <>
       <section className="bg-muted py-12 md:py-24">
@@ -199,8 +205,10 @@ export default function AboutPage() {
             promote collaboration, trust-building, and cooperation in the Nile Basin region.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="lg">Become a Member</Button>
-            <Button size="lg" variant="outline">
+            <Button size="lg" onClick={openSignupModal}>
+              Become a Member
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => router.push("/contact")}>
               Contact Us
             </Button>
           </div>
