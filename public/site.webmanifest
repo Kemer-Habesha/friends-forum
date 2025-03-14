@@ -1,0 +1,20 @@
+{
+  "name": "FRIENDS Forum",
+  "short_name": "FRIENDS",
+  "icons": [
+    {
+      "src": "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/android-chrome-192x192-xgpkE8itzByXoY1jTYFauJWxWidg4p.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/android-chrome-512x512-UA5G2v63FETvpsLwOFHIcRYh9tb2NK.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#4DA6D3",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
+
