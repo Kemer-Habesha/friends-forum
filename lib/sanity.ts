@@ -264,6 +264,78 @@ export const forumPageQuery = `*[_type == "forumPage"][0] {
   seo
 }`
 
+// GROQ query for the Contact page
+export const contactPageQuery = `*[_type == "contactPage"][0] {
+  title,
+  hero {
+    title,
+    subtitle
+  },
+  contactForm {
+    title,
+    description,
+    successMessage {
+      title,
+      description
+    },
+    formFields {
+      firstName {
+        label,
+        placeholder,
+        required
+      },
+      lastName {
+        label,
+        placeholder,
+        required
+      },
+      email {
+        label,
+        placeholder,
+        required
+      },
+      subject {
+        label,
+        placeholder,
+        required
+      },
+      message {
+        label,
+        placeholder,
+        required,
+        minHeight
+      }
+    },
+    submitButton {
+      text,
+      loadingText
+    }
+  },
+  contactInformation {
+    title,
+    description,
+    contactMethods[] {
+      type,
+      icon,
+      title,
+      details,
+      link
+    },
+    mapImage
+  },
+  faq {
+    title,
+    subtitle,
+    questions[] {
+      question,
+      answer,
+      category,
+      featured
+    }
+  },
+  seo
+}`
+
 export const eventsQuery = `*[_type == "homePage"][0].events.events[] {
   title,
   description,
