@@ -164,6 +164,106 @@ export const eventsPageQuery = `*[_type == "eventsPage"][0] {
   seo
 }`
 
+// GROQ query for the Resources page
+export const resourcesPageQuery = `*[_type == "resourcesPage"][0] {
+  title,
+  hero {
+    title,
+    subtitle
+  },
+  searchSection {
+    placeholder
+  },
+  featuredResources {
+    title,
+    resources[] {
+      title,
+      description,
+      type,
+      authors,
+      publicationDate,
+      tags,
+      readLink,
+      downloadLink,
+      fileSize,
+      fileFormat,
+      featured,
+      thumbnail
+    }
+  },
+  resourceCategories {
+    title,
+    subtitle,
+    categories[] {
+      title,
+      description,
+      icon,
+      buttonText,
+      resourceCount,
+      action,
+      targetPage
+    }
+  },
+  submitResource {
+    title,
+    description,
+    ctaButton,
+    image
+  },
+  seo
+}`
+
+// GROQ query for the Forum page
+export const forumPageQuery = `*[_type == "forumPage"][0] {
+  title,
+  hero {
+    title,
+    subtitle,
+    ctaButton
+  },
+  searchSection {
+    placeholder
+  },
+  popularDiscussions {
+    title,
+    discussions[] {
+      title,
+      description,
+      tags,
+      replyCount,
+      participantCount,
+      lastActivity,
+      author {
+        name,
+        title,
+        avatar
+      },
+      featured,
+      category,
+      status
+    }
+  },
+  discussionCategories {
+    title,
+    subtitle,
+    categories[] {
+      title,
+      description,
+      discussionCount,
+      action,
+      targetPage,
+      icon
+    }
+  },
+  startDiscussion {
+    title,
+    description,
+    ctaButton,
+    image
+  },
+  seo
+}`
+
 export const eventsQuery = `*[_type == "homePage"][0].events.events[] {
   title,
   description,
