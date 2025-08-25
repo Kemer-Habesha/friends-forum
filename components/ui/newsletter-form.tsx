@@ -6,7 +6,15 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export default function NewsletterForm() {
+interface NewsletterFormProps {
+  placeholder?: string
+  buttonText?: string
+}
+
+export default function NewsletterForm({ 
+  placeholder = "Enter your email", 
+  buttonText = "Subscribe" 
+}: NewsletterFormProps) {
   const [email, setEmail] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -39,7 +47,7 @@ export default function NewsletterForm() {
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
           <Input
             type="email"
-            placeholder="Enter your email"
+            placeholder={placeholder}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -47,7 +55,7 @@ export default function NewsletterForm() {
             aria-label="Email address"
           />
           <Button type="submit" disabled={isSubmitting} className="transition-all duration-200 ease-in-out">
-            {isSubmitting ? "Subscribing..." : "Subscribe"}
+            {isSubmitting ? "Subscribing..." : buttonText}
           </Button>
         </form>
       )}

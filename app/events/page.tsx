@@ -5,22 +5,71 @@ import { Calendar, MapPin, Users, Clock } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useEventsPage } from "@/hooks/useEventsPage"
+import { urlFor } from "@/lib/sanity"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function EventsPage() {
   const { openSignupModal } = useAuth()
   const router = useRouter()
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list")
   const [filterMyEvents, setFilterMyEvents] = useState(false)
+  const { data, loading, error } = useEventsPage()
+
+  if (loading) {
+    return <EventsPageSkeleton />
+  }
+
+  if (error || !data) {
+    return (
+      <div className="container py-12 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Page</h1>
+        <p className="text-muted-foreground">Failed to load page content. Please try again later.</p>
+      </div>
+    )
+  }
+
+  const handleButtonClick = (button: any) => {
+    if (button.action === 'signup') {
+      openSignupModal()
+    } else if (button.action === 'navigate' && button.targetPage) {
+      router.push(button.targetPage)
+    } else if (button.action === 'contact') {
+      router.push('/contact')
+    }
+  }
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  const formatDateRange = (startDate: string, endDate: string) => {
+    const start = new Date(startDate)
+    const end = new Date(endDate)
+    
+    if (start.toDateString() === end.toDateString()) {
+      return formatDate(startDate)
+    }
+    
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`
+  }
 
   return (
     <>
+
+
+      {/* Hero Section */}
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold tracking-tight">Events & Meetings</h1>
+            <h1 className="text-4xl font-bold tracking-tight">{data.hero.title}</h1>
             <p className="text-xl text-muted-foreground">
-              Join our virtual and in-person meetings to connect with researchers, technical experts, and professionals
-              from across the Nile Basin region.
+              {data.hero.subtitle}
             </p>
           </div>
         </div>
@@ -29,7 +78,7 @@ export default function EventsPage() {
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h2 className="text-3xl font-bold tracking-tight">Upcoming Events</h2>
+            <h2 className="text-3xl font-bold tracking-tight">{data.upcomingEvents.title}</h2>
             <div className="flex gap-2">
               <Button
                 variant={viewMode === "calendar" ? "default" : "outline"}
@@ -63,34 +112,51 @@ export default function EventsPage() {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="group relative overflow-hidden rounded-lg border bg-background p-6">
+              {data.upcomingEvents?.events?.map((event, index) => (
+                <div key={index} className="group relative overflow-hidden rounded-lg border bg-background p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <Calendar className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-medium">June 15-17, 2025</span>
+                    <span className="text-sm font-medium">
+                      {formatDateRange(event.startDate, event.endDate)}
+                    </span>
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Annual Nile Basin Research Conference</h3>
+                  <h3 className="text-xl font-bold mb-2">{event.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    A three-day virtual conference bringing together researchers and practitioners to discuss the latest
-                    findings and innovations in water resource management.
+                    {event.description}
                   </p>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4" />
-                      <span>Virtual Event</span>
+                      <span>{event.isVirtual ? 'Virtual Event' : event.location}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
-                      <span>9:00 AM - 5:00 PM EAT</span>
+                      <span>{event.startTime} - {event.endTime} {event.timeZone}</span>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <Button variant="outline" className="w-full" onClick={openSignupModal}>
-                      Register Now
-                    </Button>
-                  </div>
+                  {event.registrationRequired && (
+                    <div className="mt-4">
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={() => event.registrationLink ? window.open(event.registrationLink, '_blank') : openSignupModal()}
+                      >
+                        Register Now
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {(!data.upcomingEvents?.events || data.upcomingEvents.events.length === 0) && (
+            <div className="text-center py-12">
+              <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-bold mb-2">No Upcoming Events</h3>
+              <p className="text-muted-foreground">
+                Check back soon for new events and meetings.
+              </p>
             </div>
           )}
 
@@ -111,99 +177,73 @@ export default function EventsPage() {
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">Past Events</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4">{data.pastEvents.title}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Explore highlights and resources from our previous events and meetings.
+              {data.pastEvents.subtitle}
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2">
-            <div className="bg-background rounded-lg overflow-hidden">
-              <div className="relative h-48">
-                <Image
-                  src="/placeholder.svg?height=200&width=400"
-                  alt="Water Resource Management Workshop"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>March 10-12, 2024</span>
+            {data.pastEvents?.events?.map((event, index) => (
+              <div key={index} className="bg-background rounded-lg overflow-hidden">
+                <div className="relative h-48">
+                  {event.image ? (
+                    <Image
+                      src={urlFor(event.image).url()}
+                      alt={event.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src="/placeholder.svg"
+                      alt={event.title}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
-                <h3 className="text-xl font-bold mb-2">Water Resource Management Workshop</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  A hands-on workshop focused on innovative approaches to water resource management in the Nile Basin
-                  region.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // In a real app, this would navigate to a summary page
-                      alert("Viewing event summary...")
-                    }}
-                  >
-                    View Summary
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // In a real app, this would download materials
-                      alert("Downloading materials...")
-                    }}
-                  >
-                    Download Materials
-                  </Button>
-                </div>
-              </div>
-            </div>
-            <div className="bg-background rounded-lg overflow-hidden">
-              <div className="relative h-48">
-                <Image
-                  src="/placeholder.svg?height=200&width=400"
-                  alt="Nile Basin Development Forum"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>November 5-7, 2023</span>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Nile Basin Development Forum</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  A high-level forum bringing together policymakers, researchers, and practitioners to discuss
-                  development challenges and opportunities in the Nile Basin.
-                </p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // In a real app, this would navigate to a summary page
-                      alert("Viewing event summary...")
-                    }}
-                  >
-                    View Summary
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // In a real app, this would download materials
-                      alert("Downloading materials...")
-                    }}
-                  >
-                    Download Materials
-                  </Button>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>{formatDateRange(event.startDate, event.endDate)}</span>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">{event.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {event.description}
+                  </p>
+                  <div className="flex gap-2">
+                    {event.summaryLink && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(event.summaryLink, '_blank')}
+                      >
+                        View Summary
+                      </Button>
+                    )}
+                    {event.materialsLink && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(event.materialsLink, '_blank')}
+                      >
+                        Download Materials
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
+          {(!data.pastEvents?.events || data.pastEvents.events.length === 0) && (
+            <div className="text-center py-12">
+              <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-bold mb-2">No Past Events</h3>
+              <p className="text-muted-foreground">
+                Past events will appear here once they are completed.
+              </p>
+            </div>
+          )}
           <div className="flex justify-center mt-8">
             <Button
               variant="outline"
@@ -221,26 +261,123 @@ export default function EventsPage() {
       <section className="container py-12 md:py-24">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
           <div className="space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight">Host an Event</h2>
+            <h2 className="text-3xl font-bold tracking-tight">{data.hostEvent.title}</h2>
             <p className="text-muted-foreground">
-              We welcome proposals for events and meetings that align with our mission and objectives. If you are
-              interested in hosting an event in collaboration with the FRIENDS Forum, please contact us.
+              {data.hostEvent.description}
             </p>
             <div className="pt-4">
-              <Button onClick={openSignupModal}>Submit a Proposal</Button>
+              <Button onClick={() => handleButtonClick(data.hostEvent.ctaButton)}>
+                {data.hostEvent.ctaButton.text}
+              </Button>
             </div>
           </div>
           <div className="relative h-[300px] rounded-lg overflow-hidden">
-            <Image
-              src="/placeholder.svg?height=300&width=600"
-              alt="Event Collaboration"
-              fill
-              className="object-cover"
-            />
+            {data.hostEvent.image ? (
+              <Image
+                src={urlFor(data.hostEvent.image).url()}
+                alt="Event Collaboration"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <Image
+                src="/placeholder.svg"
+                alt="Event Collaboration"
+                fill
+                className="object-cover"
+              />
+            )}
           </div>
         </div>
       </section>
     </>
+  )
+}
+
+function EventsPageSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Hero Skeleton */}
+      <section className="bg-muted py-12 md:py-24">
+        <div className="container">
+          <div className="text-center space-y-4 max-w-3xl mx-auto">
+            <Skeleton className="h-12 w-80 mx-auto" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+        </div>
+      </section>
+
+      {/* Upcoming Events Skeleton */}
+      <section className="container py-12 md:py-24">
+        <div className="space-y-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <Skeleton className="h-8 w-48" />
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-32" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-background rounded-lg border p-6">
+                <Skeleton className="h-4 w-32 mb-4" />
+                <Skeleton className="h-6 w-full mb-2" />
+                <Skeleton className="h-16 w-full mb-4" />
+                <div className="space-y-2 mb-4">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center">
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+      </section>
+
+      {/* Past Events Skeleton */}
+      <section className="bg-muted py-12 md:py-24">
+        <div className="container">
+          <div className="text-center mb-12">
+            <Skeleton className="h-8 w-48 mx-auto mb-4" />
+            <Skeleton className="h-6 w-96 mx-auto" />
+          </div>
+          <div className="grid gap-8 md:grid-cols-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-background rounded-lg overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <div className="p-6">
+                  <Skeleton className="h-4 w-32 mb-2" />
+                  <Skeleton className="h-6 w-full mb-2" />
+                  <Skeleton className="h-16 w-full mb-4" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-9 w-24" />
+                    <Skeleton className="h-9 w-32" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-center mt-8">
+            <Skeleton className="h-10 w-40" />
+          </div>
+        </div>
+      </section>
+
+      {/* Host Event Skeleton */}
+      <section className="container py-12 md:py-24">
+        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <Skeleton className="h-[300px] w-full rounded-lg" />
+        </div>
+      </section>
+    </div>
   )
 }
 
