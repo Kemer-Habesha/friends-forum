@@ -1,93 +1,29 @@
-"use client"
-
-import type React from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, FileText, Download, BookOpen, Filter } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import { useState, useEffect } from "react"
 import { enhancedCachedClient, resourcesPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
 
-export default function ResourcesPage() {
-  const { openSignupModal } = useAuth()
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isFiltering, setIsFiltering] = useState(false)
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        const result = await enhancedCachedClient.fetch(resourcesPageQuery)
-        setData(result)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      alert(`Searching for: ${searchQuery}`)
-    }
+// Server-side data fetching
+async function getResourcesPageData() {
+  try {
+    const data = await enhancedCachedClient.fetch<any>(resourcesPageQuery)
+    return data
+  } catch (error) {
+    console.error('Failed to fetch resources page data:', error)
+    return null
   }
+}
 
-  // Icon mapping for resource categories
-  const iconMap: Record<string, React.ComponentType<any>> = {
-    FileText,
-    BookOpen,
-    Report: FileText, // Using FileText as fallback for Report
-    Presentation: BookOpen, // Using BookOpen as fallback for Presentation
-  }
-
-  if (loading) {
-    return (
-      <div className="container py-12 md:py-24">
-        <div className="space-y-8">
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <div className="h-12 bg-muted rounded animate-pulse"></div>
-            <div className="h-6 bg-muted rounded animate-pulse max-w-2xl mx-auto"></div>
-          </div>
-          <div className="max-w-3xl mx-auto">
-            <div className="h-12 bg-muted rounded animate-pulse"></div>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-64 bg-muted rounded animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="container py-12 md:py-24">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Error Loading Resources</h1>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    )
-  }
+export default async function ResourcesPage() {
+  const data = await getResourcesPageData()
 
   if (!data) {
     return (
-      <div className="container py-12 md:py-24">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">No Resources Found</h1>
-          <p className="text-muted-foreground">Please check back later or contact support.</p>
-        </div>
+      <div className="container py-12 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Page</h1>
+        <p className="text-muted-foreground">Failed to load page content. Please try again later.</p>
       </div>
     )
   }
@@ -108,48 +44,23 @@ export default function ResourcesPage() {
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
           <div className="max-w-3xl mx-auto">
-            <form onSubmit={handleSearch} className="relative">
+            <form className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder={data.searchSection?.placeholder || "Search resources..."}
                 className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                readOnly
               />
             </form>
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <h2 className="text-3xl font-bold tracking-tight">{data.featuredResources?.title || 'Featured Resources'}</h2>
-            <Button
-              variant={isFiltering ? "default" : "outline"}
-              size="sm"
-              onClick={() => setIsFiltering(!isFiltering)}
-            >
+            <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
               Filter Resources
             </Button>
           </div>
-
-          {isFiltering && (
-            <div className="bg-muted p-4 rounded-lg">
-              <h3 className="font-medium mb-2">Filter Options</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                <Button variant="outline" size="sm" className="justify-start">
-                  Research Papers
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  Case Studies
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  Reports
-                </Button>
-                <Button variant="outline" size="sm" className="justify-start">
-                  Presentations
-                </Button>
-              </div>
-            </div>
-          )}
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.featuredResources?.resources && data.featuredResources.resources.length > 0 ? (
@@ -175,24 +86,24 @@ export default function ResourcesPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          window.open(resource.readLink, '_blank')
-                        }}
+                        asChild
                       >
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Read
+                        <a href={resource.readLink} target="_blank" rel="noopener noreferrer">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Read
+                        </a>
                       </Button>
                     )}
                     {resource.downloadLink && (
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          window.open(resource.downloadLink, '_blank')
-                        }}
+                        asChild
                       >
-                        <Download className="h-4 w-4 mr-2" />
-                        Download {resource.fileFormat || 'PDF'}
+                        <a href={resource.downloadLink} target="_blank" rel="noopener noreferrer">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download {resource.fileFormat || 'PDF'}
+                        </a>
                       </Button>
                     )}
                   </div>
@@ -216,40 +127,23 @@ export default function ResourcesPage() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                     <span>Authors: Dr. Abate Tadesse, Dr. Sarah Kimani</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        alert("Opening resource to read...")
-                      }}
-                    >
-                      <BookOpen className="h-4 w-4 mr-2" />
-                      Read
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        alert("Downloading PDF...")
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download PDF
-                    </Button>
-                  </div>
+                                      <div className="flex justify-between items-center">
+                      <Button variant="outline" size="sm" disabled>
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Read
+                      </Button>
+                      <Button variant="outline" size="sm" disabled>
+                        <Download className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </Button>
+                    </div>
                 </div>
               ))
             )}
           </div>
 
           <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => {
-                alert("Loading more resources...")
-              }}
-            >
+            <Button variant="outline" disabled>
               Load More Resources
             </Button>
           </div>
@@ -277,22 +171,7 @@ export default function ResourcesPage() {
                     <p className="text-sm text-muted-foreground mb-4">
                       {category.description}
                     </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (category.action === 'navigate' && category.targetPage) {
-                          // Navigate to target page
-                          window.location.href = category.targetPage
-                        } else if (category.action === 'filter') {
-                          // Open filter for this category
-                          setIsFiltering(true)
-                        } else {
-                          // Default action
-                          alert(`Browsing ${category.title.toLowerCase()}...`)
-                        }
-                      }}
-                    >
+                    <Button variant="outline" size="sm" disabled>
                       {category.buttonText}
                     </Button>
                   </div>
@@ -329,20 +208,14 @@ export default function ResourcesPage() {
                 const IconComponent = iconMap[category.icon] || FileText
                 return (
                   <div key={index} className="bg-background rounded-lg p-6 text-center">
-                    <div className="rounded-full bg-primary/10 p-3 inline-flex mx-auto mb-4">
+                    <div className="bg-primary/10 p-3 inline-flex mx-auto mb-4">
                       <IconComponent className="h-6 w-6 text-primary" />
                     </div>
                     <h3 className="font-bold text-lg mb-2">{category.title}</h3>
                     <p className="text-sm text-muted-foreground mb-4">
                       {category.description}
                     </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        alert(`Browsing ${category.title.toLowerCase()}...`)
-                      }}
-                    >
+                    <Button variant="outline" size="sm" disabled>
                       {category.buttonText}
                     </Button>
                   </div>
@@ -378,24 +251,24 @@ export default function ResourcesPage() {
               {data.submitResource?.description || 'We welcome submissions of research papers, case studies, and other resources related to the Nile Basin region. If you have a resource that you would like to share with the FRIENDS Forum community, please submit it for review.'}
             </p>
             <div className="pt-4">
-              {data.submitResource?.ctaButton?.action === 'signup' ? (
-                <Button onClick={openSignupModal}>
-                  {data.submitResource.ctaButton.text || 'Submit a Resource'}
-                </Button>
-              ) : data.submitResource?.ctaButton?.action === 'navigate' && data.submitResource.ctaButton.targetPage ? (
-                <Button onClick={() => window.location.href = data.submitResource.ctaButton.targetPage!}>
-                  {data.submitResource.ctaButton.text || 'Submit a Resource'}
-                </Button>
-              ) : (
-                <Button onClick={openSignupModal}>
+              <Button asChild>
+                <a href="/contact">
                   Submit a Resource
-                </Button>
-              )}
+                </a>
+              </Button>
             </div>
           </div>
         </div>
       </section>
     </>
   )
+}
+
+// Icon mapping for resource categories
+const iconMap: Record<string, React.ComponentType<any>> = {
+  FileText,
+  BookOpen,
+  Report: FileText, // Using FileText as fallback for Report
+  Presentation: BookOpen, // Using BookOpen as fallback for Presentation
 }
 

@@ -24,9 +24,6 @@ const nextConfig = {
   // Enable compression
   compress: true,
   
-  // Enable SWC minification
-  swcMinify: true,
-  
   // Static generation optimization
   generateEtags: false,
   
