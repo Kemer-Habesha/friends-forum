@@ -1,0 +1,46 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_SANITY_PROJECT_ID=${_SANITY_PROJECT_ID}'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_SANITY_DATASET=${_SANITY_DATASET}'
+      - '--build-arg'
+      - 'NEXT_PUBLIC_SANITY_API_VERSION=${_SANITY_API_VERSION}'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/friends-forum:$COMMIT_SHA'
+      - '.'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/friends-forum:$COMMIT_SHA']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'friends-forum'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/friends-forum:$COMMIT_SHA'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'NEXT_PUBLIC_SANITY_PROJECT_ID=${_SANITY_PROJECT_ID},NEXT_PUBLIC_SANITY_DATASET=${_SANITY_DATASET},NEXT_PUBLIC_SANITY_API_VERSION=${_SANITY_API_VERSION}'
+
+images:
+  - 'gcr.io/$PROJECT_ID/friends-forum:$COMMIT_SHA'
+
+# These substitutions should be set in your Cloud Build trigger or via command line
+# DO NOT hardcode sensitive values here
+substitutions:
+  _SANITY_PROJECT_ID: ''  # Set this in Cloud Build trigger or via --substitutions
+  _SANITY_DATASET: 'production'  # This is safe to keep as default
+  _SANITY_API_VERSION: '2025-08-23'  # This is safe to keep as default
+  _REGION: 'us-central1'  # Update this to your preferred region
