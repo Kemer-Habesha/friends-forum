@@ -100,7 +100,7 @@ export default async function ResourcesPage() {
                         size="sm"
                         asChild
                       >
-                        <a href={resource.downloadLink} target="_blank" rel="noopener noreferrer">
+                        <a href={resource.downloadLink} target="_blank" rel="noopener noreferrer" download>
                           <Download className="h-4 w-4 mr-2" />
                           Download {resource.fileFormat || 'PDF'}
                         </a>
@@ -128,13 +128,17 @@ export default async function ResourcesPage() {
                     <span>Authors: Dr. Abate Tadesse, Dr. Sarah Kimani</span>
                   </div>
                                       <div className="flex justify-between items-center">
-                      <Button variant="outline" size="sm" disabled>
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Read
+                      <Button variant="outline" size="sm" asChild>
+                        <a href="/resources/read" target="_blank">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Read
+                        </a>
                       </Button>
-                      <Button variant="outline" size="sm" disabled>
-                        <Download className="h-4 w-4 mr-2" />
-                        Download PDF
+                      <Button variant="outline" size="sm" asChild>
+                        <a href="/sample-resource.pdf" download>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
+                        </a>
                       </Button>
                     </div>
                 </div>
