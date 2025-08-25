@@ -60,6 +60,21 @@ export function SanityImage({
     height: height || 300
   }
 
+  // Use regular img tag for external images to avoid Next.js optimization issues
+  if (imgSrc.startsWith('http')) {
+    return (
+      <img
+        src={imgSrc}
+        alt={alt}
+        className={className}
+        style={fill ? { width: '100%', height: '100%', objectFit: 'cover' } : {}}
+        onError={handleError}
+        onLoad={() => setHasError(false)}
+      />
+    )
+  }
+
+  // Use Next.js Image for local images
   return (
     <Image
       src={imgSrc}
