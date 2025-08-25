@@ -67,7 +67,7 @@ export const enhancedCachedClient = {
   }
 }
 
-const builder = imageUrlBuilder(client)
+const builder = imageUrlBuilder(cachedClient)
 
 export function urlFor(source: any) {
   return builder.image(source)
