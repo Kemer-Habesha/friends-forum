@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Mail, Phone, MapPin, Globe, MessageCircle } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
-import { useState } from "react"
-import { useContactPage } from "@/hooks/useContactPage"
+import { useState, useEffect } from "react"
+import { enhancedCachedClient, contactPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
 
 export default function ContactPage() {
-  const { openSignupModal } = useAuth()
-  const { data, loading, error } = useContactPage()
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -23,6 +23,22 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const result = await enhancedCachedClient.fetch(contactPageQuery)
+        setData(result)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target
@@ -244,7 +260,7 @@ export default function ContactPage() {
             </div>
             <div className="space-y-4">
               {data.contactInformation?.contactMethods && data.contactInformation.contactMethods.length > 0 ? (
-                data.contactInformation.contactMethods.map((method, index) => {
+                data.contactInformation.contactMethods.map((method: any, index: number) => {
                   const IconComponent = iconMap[method.icon] || Mail
                   return (
                     <div key={index} className="flex items-start gap-4">
@@ -253,7 +269,7 @@ export default function ContactPage() {
                       </div>
                       <div>
                         <h3 className="font-bold">{method.title}</h3>
-                        {method.details && method.details.map((detail, detailIndex) => (
+                        {method.details && method.details.map((detail: string, detailIndex: number) => (
                           <p key={detailIndex} className="text-sm text-muted-foreground">
                             {method.link ? (
                               <a 
@@ -355,7 +371,7 @@ export default function ContactPage() {
           </div>
           <div className="max-w-3xl mx-auto space-y-4">
             {data.faq?.questions && data.faq.questions.length > 0 ? (
-              data.faq.questions.map((faq, index) => (
+              data.faq.questions.map((faq: any, index: number) => (
                 <div key={index} className="rounded-lg border bg-background p-6">
                   <h3 className="font-bold text-lg mb-2">{faq.question}</h3>
                   <p className="text-muted-foreground">
