@@ -2,12 +2,70 @@ import { createClient } from 'next-sanity'
 import imageUrlBuilder from '@sanity/image-url'
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 
+// Cache configuration
+const CACHE_TIME = 5 * 60 * 1000 // 5 minutes
+const cache = new Map<string, { data: any; timestamp: number }>()
+
+// Cache utility functions
+function getCachedData(key: string) {
+  const cached = cache.get(key)
+  if (cached && Date.now() - cached.timestamp < CACHE_TIME) {
+    return cached.data
+  }
+  return null
+}
+
+function setCachedData(key: string, data: any) {
+  cache.set(key, { data, timestamp: Date.now() })
+}
+
+// Clear expired cache entries periodically
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, value] of cache.entries()) {
+    if (now - value.timestamp > CACHE_TIME) {
+      cache.delete(key)
+    }
+  }
+}, CACHE_TIME)
+
 export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: false, // Set to false for development, true for production
+  useCdn: process.env.NODE_ENV === 'production', // Enable CDN in production for better performance
 })
+
+// Cached client for better performance
+export const cachedClient = createClient({
+  projectId,
+  dataset,
+  apiVersion,
+  useCdn: true, // Always use CDN for cached queries
+  perspective: 'published',
+})
+
+// Enhanced cached client with memory caching
+export const enhancedCachedClient = {
+  ...cachedClient,
+  async fetch<T>(query: string, params?: any): Promise<T> {
+    const cacheKey = `${query}-${JSON.stringify(params || {})}`
+    
+    // Check memory cache first
+    const cached = getCachedData(cacheKey)
+    if (cached) {
+      return cached
+    }
+    
+    // Fetch from Sanity if not cached
+    const data = await cachedClient.fetch<T>(query, params)
+    
+    // Store in cache
+    setCachedData(cacheKey, data)
+    
+    return data
+  }
+}
 
 const builder = imageUrlBuilder(client)
 
@@ -15,7 +73,7 @@ export function urlFor(source: any) {
   return builder.image(source)
 }
 
-// GROQ queries for the home page - updated for new schema structure
+// Optimized GROQ queries with specific field selection
 export const homePageQuery = `*[_type == "homePage"][0] {
   title,
   hero {

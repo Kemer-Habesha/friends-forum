@@ -1,20 +1,48 @@
 "use client"
+
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Users, Clock } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useEventsPage } from "@/hooks/useEventsPage"
 import { urlFor } from "@/lib/sanity"
+import { enhancedCachedClient, eventsPageQuery } from "@/lib/sanity"
+import { useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+
+// Icon mapping for objectives
+const iconMap: Record<string, any> = {
+  BookOpen: Calendar,
+  Users,
+  Droplet: MapPin,
+  Lightbulb: Clock,
+}
 
 export default function EventsPage() {
   const { openSignupModal } = useAuth()
   const router = useRouter()
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list")
   const [filterMyEvents, setFilterMyEvents] = useState(false)
-  const { data, loading, error } = useEventsPage()
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const result = await enhancedCachedClient.fetch(eventsPageQuery)
+        setData(result)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   if (loading) {
     return <EventsPageSkeleton />
@@ -61,8 +89,6 @@ export default function EventsPage() {
 
   return (
     <>
-
-
       {/* Hero Section */}
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
@@ -112,7 +138,7 @@ export default function EventsPage() {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {data.upcomingEvents?.events?.map((event, index) => (
+              {data.upcomingEvents?.events?.map((event: any, index: number) => (
                 <div key={index} className="group relative overflow-hidden rounded-lg border bg-background p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <Calendar className="h-5 w-5 text-primary" />
@@ -183,7 +209,7 @@ export default function EventsPage() {
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2">
-            {data.pastEvents?.events?.map((event, index) => (
+            {data.pastEvents?.events?.map((event: any, index: number) => (
               <div key={index} className="bg-background rounded-lg overflow-hidden">
                 <div className="relative h-48">
                   {event.image ? (

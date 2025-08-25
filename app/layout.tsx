@@ -5,6 +5,8 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { AuthProvider } from "@/contexts/auth-context"
 import AuthModals from "@/components/auth-modals"
+import { PerformanceMonitor } from "@/components/performance-monitor"
+import { ServiceWorkerRegister } from "@/components/service-worker-register"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -12,6 +14,43 @@ export const metadata = {
   title: "FRIENDS Forum - Nile Basin Research & Collaboration",
   description:
     "An international platform for research, knowledge exchange, and development support in the Nile Basin region.",
+  keywords: ["Nile Basin", "Research", "Collaboration", "Development", "Forum"],
+  authors: [{ name: "FRIENDS Forum" }],
+  creator: "FRIENDS Forum",
+  publisher: "FRIENDS Forum",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL('https://friends-forum.vercel.app'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: "FRIENDS Forum - Nile Basin Research & Collaboration",
+    description: "An international platform for research, knowledge exchange, and development support in the Nile Basin region.",
+    url: 'https://friends-forum.vercel.app',
+    siteName: 'FRIENDS Forum',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "FRIENDS Forum - Nile Basin Research & Collaboration",
+    description: "An international platform for research, knowledge exchange, and development support in the Nile Basin region.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: [
       {
@@ -65,6 +104,8 @@ export default function RootLayout({
             <Footer />
           </div>
           <AuthModals />
+          <PerformanceMonitor />
+          <ServiceWorkerRegister />
         </AuthProvider>
       </body>
     </html>

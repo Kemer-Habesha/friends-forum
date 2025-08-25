@@ -8,17 +8,35 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, MessageSquare, Users, Clock, ArrowRight } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useForumPage } from "@/hooks/useForumPage"
+import { enhancedCachedClient, forumPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
 
 export default function ForumPage() {
   const { openSignupModal } = useAuth()
   const router = useRouter()
-  const { data, loading, error } = useForumPage()
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [activeFilter, setActiveFilter] = useState<"latest" | "active" | "unanswered">("latest")
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const result = await enhancedCachedClient.fetch(forumPageQuery)
+        setData(result)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -142,7 +160,7 @@ export default function ForumPage() {
 
           <div className="space-y-6">
             {data.popularDiscussions?.discussions && data.popularDiscussions.discussions.length > 0 ? (
-              data.popularDiscussions.discussions.map((discussion, index) => (
+              data.popularDiscussions.discussions.map((discussion: any, index: number) => (
                 <div key={index} className="group relative overflow-hidden rounded-lg border bg-background p-6">
                   <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
                     <div className="flex-1">
@@ -152,7 +170,7 @@ export default function ForumPage() {
                       </p>
                       {discussion.tags && discussion.tags.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-4">
-                          {discussion.tags.map((tag, tagIndex) => (
+                          {discussion.tags.map((tag: string, tagIndex: number) => (
                             <span key={tagIndex} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
                               {tag}
                             </span>
@@ -299,7 +317,7 @@ export default function ForumPage() {
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {data.discussionCategories?.categories && data.discussionCategories.categories.length > 0 ? (
-              data.discussionCategories.categories.map((category, index) => (
+              data.discussionCategories.categories.map((category: any, index: number) => (
                 <div key={index} className="bg-background rounded-lg p-6">
                   <h3 className="font-bold text-lg mb-2">{category.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4">

@@ -6,15 +6,33 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, FileText, Download, BookOpen, Filter } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { useState } from "react"
-import { useResourcesPage } from "@/hooks/useResourcesPage"
+import { useState, useEffect } from "react"
+import { enhancedCachedClient, resourcesPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
 
 export default function ResourcesPage() {
   const { openSignupModal } = useAuth()
-  const { data, loading, error } = useResourcesPage()
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [isFiltering, setIsFiltering] = useState(false)
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const result = await enhancedCachedClient.fetch(resourcesPageQuery)
+        setData(result)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -135,7 +153,7 @@ export default function ResourcesPage() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data.featuredResources?.resources && data.featuredResources.resources.length > 0 ? (
-              data.featuredResources.resources.map((resource, index) => (
+              data.featuredResources.resources.map((resource: any, index: number) => (
                 <div key={index} className="group relative overflow-hidden rounded-lg border bg-background p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <FileText className="h-5 w-5 text-primary" />
@@ -248,7 +266,7 @@ export default function ResourcesPage() {
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {data.resourceCategories?.categories && data.resourceCategories.categories.length > 0 ? (
-              data.resourceCategories.categories.map((category, index) => {
+              data.resourceCategories.categories.map((category: any, index: number) => {
                 const IconComponent = iconMap[category.icon] || FileText
                 return (
                   <div key={index} className="bg-background rounded-lg p-6 text-center">
