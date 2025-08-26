@@ -94,12 +94,6 @@ export default function Header() {
           </Link>
         </nav>
         <div className="flex items-center gap-4">
-          <Button variant="outline" className="hidden md:flex" onClick={openLoginModal}>
-            Sign In
-          </Button>
-          <Button className="hidden md:flex" onClick={openSignupModal}>
-            Join Us
-          </Button>
           <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -110,7 +104,7 @@ export default function Header() {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinejoin="round"
+              // strokeLinecap="round"
               className="h-6 w-6"
             >
               <line x1="4" x2="20" y1="12" y2="12" />
@@ -187,27 +181,6 @@ export default function Header() {
                 Contact
               </Link>
             </nav>
-            <div className="flex flex-col space-y-2">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  setIsMenuOpen(false)
-                  openLoginModal()
-                }}
-              >
-                Sign In
-              </Button>
-              <Button
-                className="w-full"
-                onClick={() => {
-                  setIsMenuOpen(false)
-                  openSignupModal()
-                }}
-              >
-                Join Us
-              </Button>
-            </div>
           </div>
         </div>
       )}
