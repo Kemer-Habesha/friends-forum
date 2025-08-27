@@ -69,6 +69,18 @@ export const enhancedCachedClient = {
     setCachedData(cacheKey, data)
     
     return data
+  },
+  
+  // Function to clear cache for immediate updates
+  clearCache() {
+    cache.clear()
+  },
+  
+  // Function to refresh specific query
+  async refresh<T>(query: string, params?: any): Promise<T> {
+    const cacheKey = `${query}-${JSON.stringify(params || {})}`
+    cache.delete(cacheKey)
+    return await this.fetch<T>(query, params)
   }
 }
 
