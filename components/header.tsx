@@ -226,7 +226,7 @@ export default function Header() {
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
-              strokeLinejoin="round"
+              // strokeLinecap="round"
               className="h-6 w-6"
             >
               <line x1="4" x2="20" y1="12" y2="12" />
