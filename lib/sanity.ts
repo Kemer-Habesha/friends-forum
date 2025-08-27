@@ -426,3 +426,51 @@ export const focusAreasQuery = `*[_type == "homePage"][0].focusAreas.focusAreas[
   icon,
   image
 }`
+
+// GROQ query for site-wide settings
+export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
+  title,
+  logo,
+  navigation {
+    menuItems[] {
+      label,
+      link,
+      order
+    }
+  },
+  footer {
+    description,
+    quickLinks {
+      title,
+      links[] {
+        label,
+        link
+      }
+    },
+    contactInfo {
+      title,
+      email,
+      phone,
+      address
+    },
+    socialMedia {
+      title,
+      platforms[] {
+        platform,
+        url,
+        enabled
+      }
+    },
+    copyright
+  },
+  ctaButtons {
+    signInButton {
+      text,
+      variant
+    },
+    joinUsButton {
+      text,
+      variant
+    }
+  }
+}`

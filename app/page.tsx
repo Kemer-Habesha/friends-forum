@@ -273,9 +273,9 @@ function HomePageSkeleton() {
                 <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-white drop-shadow-md">
                   <Skeleton className="h-16 w-3/4" />
                 </h1>
-                <p className="text-xl text-white/90 drop-shadow">
+                <div className="text-xl text-white/90 drop-shadow">
                   <Skeleton className="h-6 w-3/4" />
-                </p>
+                </div>
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
                   <Skeleton className="h-12 w-32" />
                   <Skeleton className="h-12 w-32" />
