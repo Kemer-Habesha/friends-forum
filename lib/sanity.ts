@@ -3,7 +3,9 @@ import imageUrlBuilder from '@sanity/image-url'
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 
 // Cache configuration
-const CACHE_TIME = 5 * 60 * 1000 // 5 minutes
+const CACHE_TIME = process.env.NODE_ENV === 'development' 
+  ? 30 * 1000 // 30 seconds in development
+  : 5 * 60 * 1000 // 5 minutes in production
 const cache = new Map<string, { data: any; timestamp: number }>()
 
 // Cache utility functions
@@ -33,7 +35,7 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: false, // Enable CDN in production for better performance
+  useCdn: false, // Disable CDN to see changes immediately
 })
 
 // Cached client for better performance
@@ -41,7 +43,7 @@ export const cachedClient = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: process.env.NODE_ENV === 'production', // Always use CDN for cached queries
+  useCdn: process.env.NODE_ENV === 'production', // Only use CDN in production
   perspective: 'published',
 })
 
