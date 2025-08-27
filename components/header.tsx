@@ -5,7 +5,6 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
 import { useSiteSettings } from "@/hooks/useSiteSettings"
 import { urlFor } from "@/lib/sanity"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -13,7 +12,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
-  const { openLoginModal, openSignupModal } = useAuth()
   const { data, loading, error } = useSiteSettings()
 
   const isActive = (path: string) => {
@@ -218,38 +216,6 @@ export default function Header() {
           )}
         </nav>
         <div className="flex items-center gap-4">
-          {loading ? (
-            <>
-              <Skeleton className="h-9 w-20" />
-              <Skeleton className="h-9 w-20" />
-            </>
-          ) : error ? (
-            <>
-              <Button variant="outline" className="hidden md:flex" onClick={openLoginModal}>
-                Sign In
-              </Button>
-              <Button className="hidden md:flex" onClick={openSignupModal}>
-                Join Us
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button 
-                variant={data?.ctaButtons?.signInButton?.variant as any || "outline"} 
-                className="hidden md:flex" 
-                onClick={openLoginModal}
-              >
-                {data?.ctaButtons?.signInButton?.text || "Sign In"}
-              </Button>
-              <Button 
-                variant={data?.ctaButtons?.joinUsButton?.variant as any || "default"} 
-                className="hidden md:flex" 
-                onClick={openSignupModal}
-              >
-                {data?.ctaButtons?.joinUsButton?.text || "Join Us"}
-              </Button>
-            </>
-          )}
           <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -362,59 +328,6 @@ export default function Header() {
                 ))
               )}
             </nav>
-            <div className="flex flex-col space-y-2">
-              {loading ? (
-                <>
-                  <Skeleton className="h-9 w-full" />
-                  <Skeleton className="h-9 w-full" />
-                </>
-              ) : error ? (
-                <>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setIsMenuOpen(false)
-                      openLoginModal()
-                    }}
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    className="w-full"
-                    onClick={() => {
-                      setIsMenuOpen(false)
-                      openSignupModal()
-                    }}
-                  >
-                    Join Us
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant={data?.ctaButtons?.signInButton?.variant as any || "outline"}
-                    className="w-full"
-                    onClick={() => {
-                      setIsMenuOpen(false)
-                      openLoginModal()
-                    }}
-                  >
-                    {data?.ctaButtons?.signInButton?.text || "Sign In"}
-                  </Button>
-                  <Button
-                    variant={data?.ctaButtons?.joinUsButton?.variant as any || "default"}
-                    className="w-full"
-                    onClick={() => {
-                      setIsMenuOpen(false)
-                      openSignupModal()
-                    }}
-                  >
-                    {data?.ctaButtons?.joinUsButton?.text || "Join Us"}
-                  </Button>
-                </>
-              )}
-            </div>
           </div>
         </div>
       )}
