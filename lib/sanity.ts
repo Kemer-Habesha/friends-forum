@@ -3,7 +3,7 @@ import imageUrlBuilder from '@sanity/image-url'
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 
 // Cache configuration
-const CACHE_TIME = 5 * 60 * 1000 // 5 minutes
+const CACHE_TIME = 30 * 1000
 const cache = new Map<string, { data: any; timestamp: number }>()
 
 // Cache utility functions
@@ -33,7 +33,7 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: process.env.NODE_ENV === 'production', // Enable CDN in production for better performance
+  useCdn: false, // Disable CDN to see changes immediately
 })
 
 // Cached client for better performance
@@ -41,7 +41,7 @@ export const cachedClient = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true, // Always use CDN for cached queries
+  useCdn: false, // Disable CDN in production to see changes immediately
   perspective: 'published',
 })
 
@@ -49,6 +49,11 @@ export const cachedClient = createClient({
 export const enhancedCachedClient = {
   ...cachedClient,
   async fetch<T>(query: string, params?: any): Promise<T> {
+    // In development, bypass cache completely for immediate updates
+    if (process.env.NODE_ENV === 'development') {
+      return await cachedClient.fetch<T>(query, params)
+    }
+    
     const cacheKey = `${query}-${JSON.stringify(params || {})}`
     
     // Check memory cache first
@@ -64,6 +69,18 @@ export const enhancedCachedClient = {
     setCachedData(cacheKey, data)
     
     return data
+  },
+  
+  // Function to clear cache for immediate updates
+  clearCache() {
+    cache.clear()
+  },
+  
+  // Function to refresh specific query
+  async refresh<T>(query: string, params?: any): Promise<T> {
+    const cacheKey = `${query}-${JSON.stringify(params || {})}`
+    cache.delete(cacheKey)
+    return await this.fetch<T>(query, params)
   }
 }
 
