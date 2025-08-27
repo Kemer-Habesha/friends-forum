@@ -41,7 +41,7 @@ export const cachedClient = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: process.env.NODE_ENV === 'production', // Only use CDN in production
+  useCdn: false, // Disable CDN in production to see changes immediately
   perspective: 'published',
 })
 
