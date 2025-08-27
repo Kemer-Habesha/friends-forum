@@ -23,7 +23,7 @@ export default function ForumPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeFilter, setActiveFilter] = useState<"latest" | "active" | "unanswered">("latest")
+  const [showAllDiscussions, setShowAllDiscussions] = useState(false)
 
   useEffect(() => {
     async function fetchData() {
@@ -41,11 +41,32 @@ export default function ForumPage() {
     fetchData()
   }, [])
 
+  // Filter discussions based on search query
+  const filteredDiscussions = data?.popularDiscussions?.discussions?.filter((discussion: any) => {
+    if (!searchQuery.trim()) return true
+    
+    const query = searchQuery.toLowerCase()
+    const title = discussion.title?.toLowerCase() || ''
+    const description = discussion.description?.toLowerCase() || ''
+    const tags = discussion.tags?.map((tag: string) => tag.toLowerCase()) || []
+    const authorName = discussion.author?.name?.toLowerCase() || ''
+    
+    return title.includes(query) || 
+           description.includes(query) || 
+           tags.some((tag: string) => tag.includes(query)) ||
+           authorName.includes(query)
+  }) || []
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      alert(`Searching for: ${searchQuery}`)
-    }
+    // Search is now handled by the filteredDiscussions state
+    // Reset showAllDiscussions when searching
+    setShowAllDiscussions(false)
+  }
+
+  const clearSearch = () => {
+    setSearchQuery("")
+    setShowAllDiscussions(false)
   }
 
   if (loading) {
@@ -140,46 +161,43 @@ export default function ForumPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-500 group-hover:scale-125 group-hover:rotate-12 group-hover:text-primary" />
               <Input
                 placeholder={data.searchSection?.placeholder || "Search discussions..."}
-                className="pl-10 transition-all duration-500 hover:border-primary focus:border-primary hover:scale-105 hover:shadow-lg hover:shadow-primary/20"
+                className="pl-10 pr-20 transition-all duration-500 hover:border-primary focus:border-primary hover:scale-105 hover:shadow-lg hover:shadow-primary/20"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {searchQuery && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+                  onClick={clearSearch}
+                >
+                  ×
+                </Button>
+              )}
             </form>
           </div>
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in-left delay-1200">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{data.popularDiscussions?.title || 'Popular Discussions'}</h2>
-            <div className="flex gap-2 animate-fade-in-right delay-1400">
-              <Button
-                variant={activeFilter === "latest" ? "default" : "outline"}
-                size="sm"
-                className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg"
-                onClick={() => setActiveFilter("latest")}
-              >
-                Latest
-              </Button>
-              <Button
-                variant={activeFilter === "active" ? "default" : "outline"}
-                size="sm"
-                className="transition-all duration-500 hover:scale-110 hover:-rotate-3 hover:shadow-lg"
-                onClick={() => setActiveFilter("active")}
-              >
-                Most Active
-              </Button>
-              <Button
-                variant={activeFilter === "unanswered" ? "default" : "outline"}
-                size="sm"
-                className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg"
-                onClick={() => setActiveFilter("unanswered")}
-              >
-                Unanswered
-              </Button>
-            </div>
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">
+              {searchQuery ? `Search Results for "${searchQuery}"` : (data.popularDiscussions?.title || 'Popular Discussions')}
+            </h2>
+            {filteredDiscussions.length > 0 && (
+              <div className="text-sm text-muted-foreground">
+                Showing {showAllDiscussions ? filteredDiscussions.length : Math.min(9, filteredDiscussions.length)} of {filteredDiscussions.length} discussions
+                {searchQuery && ` matching "${searchQuery}"`}
+              </div>
+            )}
+
           </div>
 
           <div className="space-y-6">
-            {data.popularDiscussions?.discussions && data.popularDiscussions.discussions.length > 0 ? (
-              data.popularDiscussions.discussions.map((discussion: any, index: number) => (
+            {filteredDiscussions.length > 0 ? (
+              (showAllDiscussions 
+                ? filteredDiscussions 
+                : filteredDiscussions.slice(0, 9)
+              ).map((discussion: any, index: number) => (
                 <div key={index} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-700 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-primary/25 hover:border-primary/50 hover:-translate-y-3 animate-bounce-in delay-${1600 + (index * 150)}`}>
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
                   <div className="relative z-10">
@@ -252,83 +270,45 @@ export default function ForumPage() {
                 </div>
               ))
             ) : (
-              // Fallback content when no discussions are available
-              [1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary/50 animate-fade-in-up delay-${400 + (i * 150)}`}>
-                  <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-2 transition-all duration-300 group-hover:text-primary">Sustainable Water Management Practices in the Nile Basin</h3>
-                      <p className="text-sm text-muted-foreground mb-4 transition-all duration-300 group-hover:text-foreground">
-                        What are some innovative approaches to sustainable water management that could be applied in the
-                        Nile Basin region?
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-300 hover:border-primary hover:text-primary">
-                          Water Management
-                        </span>
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-300 hover:border-primary hover:text-primary">
-                          Sustainability
-                        </span>
-                        <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-all duration-300 hover:border-primary hover:text-primary">
-                          Innovation
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-row md:flex-col items-center md:items-end gap-4 md:gap-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground">
-                        <MessageSquare className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
-                        <span>24 replies</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground">
-                        <Users className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
-                        <span>12 participants</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground">
-                        <Clock className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
-                        <span>2 days ago</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="relative h-10 w-10 transition-all duration-300 group-hover:scale-110">
-                      <Image
-                        src="/placeholder-user.jpg"
-                        alt="User Avatar"
-                        fill
-                        className="object-cover rounded-full transition-all duration-300 group-hover:scale-110"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium transition-all duration-300 group-hover:text-primary">Dr. Sarah Kimani</p>
-                      <p className="text-xs text-muted-foreground transition-all duration-300 group-hover:text-foreground">Research Coordinator</p>
-                    </div>
-                    <div className="ml-auto">
-                      <Button
-                        className="transition-all duration-300 hover:scale-105 hover:shadow-md"
-                        onClick={() => {
-                          alert("Viewing discussion...")
-                        }}
-                      >
-                        View Discussion
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
+              // No discussions message
+              <div className="text-center py-12">
+                <MessageSquare className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-bold mb-2">
+                  {searchQuery ? `No discussions found for "${searchQuery}"` : 'No Discussions Available'}
+                </h3>
+                <p className="text-muted-foreground">
+                  {searchQuery ? 'Try adjusting your search terms or browse all discussions.' : 'Check back soon for new discussions and topics.'}
+                </p>
+                {searchQuery && (
+                  <Button
+                    variant="outline"
+                    className="mt-4 transition-all duration-300 hover:scale-105 hover:shadow-md"
+                    onClick={clearSearch}
+                  >
+                    Clear Search
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
-          <div className="flex justify-center animate-fade-in-up delay-1200">
-            <Button
-              variant="outline"
-              className="transition-all duration-300 hover:scale-105 hover:shadow-md"
-              onClick={() => {
-                alert("Loading more discussions...")
-              }}
-            >
-              Load More Discussions
-            </Button>
-          </div>
+          {filteredDiscussions.length >= 10 && (
+            <div className="flex justify-center animate-fade-in-up delay-1200">
+              <Button
+                variant="outline"
+                className="transition-all duration-300 hover:scale-105 hover:shadow-md"
+                onClick={() => {
+                  if (showAllDiscussions) {
+                    setShowAllDiscussions(false)
+                  } else {
+                    setShowAllDiscussions(true)
+                  }
+                }}
+              >
+                {showAllDiscussions ? 'Show Less Discussions' : 'Load More Discussions'}
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -363,42 +343,14 @@ export default function ForumPage() {
                 </div>
               ))
             ) : (
-              // Fallback categories when none are available
-              [
-                {
-                  title: 'Research & Knowledge Exchange',
-                  description: 'Discussions on research findings, methodologies, and knowledge sharing related to the Nile Basin.',
-                  discussionCount: 42,
-                },
-                {
-                  title: 'Development Projects',
-                  description: 'Discussions on infrastructure development, project planning, and implementation in the Nile Basin.',
-                  discussionCount: 36,
-                },
-                {
-                  title: 'Nile Basin Water Use',
-                  description: 'Discussions on water allocation, usage patterns, and equitable distribution of water resources.',
-                  discussionCount: 58,
-                },
-                {
-                  title: 'Cultural Understanding',
-                  description: 'Discussions on cultural exchange, cross-border cooperation, and building trust among Nile Basin countries.',
-                  discussionCount: 29,
-                },
-              ].map((category, index) => (
-                <div key={index} className={`bg-background rounded-lg p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fade-in-up delay-${1400 + (index * 100)}`}>
-                  <h3 className="font-bold text-lg mb-2 transition-all duration-300 hover:text-primary">{category.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 transition-all duration-300 hover:text-foreground">
-                    {category.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground transition-all duration-300 hover:text-foreground">{category.discussionCount} discussions</span>
-                    <Link href="#" className="text-sm text-primary hover:underline inline-flex items-center gap-1 transition-all duration-300 hover:scale-105">
-                      Browse <ArrowRight className="h-3 w-3 transition-transform duration-300 hover:translate-x-1" />
-                    </Link>
-                  </div>
-                </div>
-              ))
+              // No categories message
+              <div className="col-span-full text-center py-12">
+                <MessageSquare className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-bold mb-2">No Discussion Categories Available</h3>
+                <p className="text-muted-foreground">
+                  Check back soon for new discussion categories and topics.
+                </p>
+              </div>
             )}
           </div>
         </div>

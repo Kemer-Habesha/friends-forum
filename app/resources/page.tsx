@@ -2,8 +2,7 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, FileText, Download, BookOpen, Filter } from "lucide-react"
+import { FileText, Download, BookOpen } from "lucide-react"
 import { enhancedCachedClient, resourcesPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
 import { useState, useEffect } from "react"
@@ -13,6 +12,7 @@ export default function ResourcesPage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAllResources, setShowAllResources] = useState(false)
 
   const fetchData = async () => {
     try {
@@ -71,28 +71,21 @@ export default function ResourcesPage() {
 
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
-          <div className="max-w-3xl mx-auto animate-slide-in-bottom delay-1000">
-            <form className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-500 group-hover:scale-125 group-hover:rotate-12 group-hover:text-primary" />
-              <Input
-                placeholder={data?.searchSection?.placeholder || "Search resources..."}
-                className="pl-10 transition-all duration-500 hover:border-primary focus:border-primary hover:scale-105 hover:shadow-lg hover:shadow-primary/20"
-                readOnly
-              />
-            </form>
-          </div>
-
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in-left delay-1200">
             <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{data?.featuredResources?.title || 'Featured Resources'}</h2>
-            <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg hover:shadow-primary/25 animate-fade-in-right delay-1400">
-              <Filter className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:rotate-12" />
-              Filter Resources
-            </Button>
+            {data?.featuredResources?.resources && data.featuredResources.resources.length > 0 && (
+              <div className="text-sm text-muted-foreground">
+                Showing {showAllResources ? data.featuredResources.resources.length : Math.min(9, data.featuredResources.resources.length)} of {data.featuredResources.resources.length} resources
+              </div>
+            )}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data?.featuredResources?.resources && data.featuredResources.resources.length > 0 ? (
-              data.featuredResources.resources.map((resource: any, index: number) => (
+              (showAllResources 
+                ? data.featuredResources.resources 
+                : data.featuredResources.resources.slice(0, 9)
+              ).map((resource: any, index: number) => (
                 <div key={index} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-700 hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:shadow-primary/25 hover:border-primary/50 hover:-translate-y-3 animate-bounce-in delay-${1600 + (index * 150)}`}>
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
                   <div className="relative z-10">
@@ -143,50 +136,34 @@ export default function ResourcesPage() {
                 </div>
               ))
             ) : (
-              // Fallback content when no resources are available
-              [1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-700 hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:shadow-primary/25 hover:border-primary/50 hover:-translate-y-3 animate-bounce-in delay-${1600 + (i * 150)}`}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-4 mb-4">
-                      <FileText className="h-5 w-5 text-primary transition-all duration-500 group-hover:scale-125 group-hover:rotate-12" />
-                      <span className="text-sm font-medium transition-all duration-500 group-hover:text-primary group-hover:font-bold">Research Paper</span>
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 transition-all duration-500 group-hover:text-primary group-hover:scale-105">
-                      Water Resource Management in the Nile Basin: Challenges and Opportunities
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 transition-all duration-500 group-hover:text-foreground">
-                      This paper examines the current state of water resource management in the Nile Basin and identifies
-                      key challenges and opportunities for sustainable development.
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4 transition-all duration-500 group-hover:text-foreground">
-                      <span>Authors: Dr. Abate Tadesse, Dr. Sarah Kimani</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg hover:shadow-primary/25" asChild>
-                        <a href="/resources/read" target="_blank">
-                          <BookOpen className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:rotate-12" />
-                          Read
-                        </a>
-                      </Button>
-                      <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:-rotate-3 hover:shadow-lg hover:shadow-secondary/25" asChild>
-                        <a href="/sample-resource.pdf" download>
-                          <Download className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:-rotate-12" />
-                          Download PDF
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
+              // No resources message
+              <div className="col-span-full text-center py-12">
+                <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-bold mb-2">No Resources Available</h3>
+                <p className="text-muted-foreground">
+                  Check back soon for new resources and materials.
+                </p>
+              </div>
             )}
           </div>
 
-          <div className="flex justify-center animate-fade-in-up delay-1000">
-            <Button variant="outline" className="transition-all duration-300 hover:scale-105 hover:shadow-md" disabled>
-              Load More Resources
-            </Button>
-          </div>
+          {data?.featuredResources?.resources && data.featuredResources.resources.length >= 10 && (
+            <div className="flex justify-center animate-fade-in-up delay-1000">
+              <Button 
+                variant="outline" 
+                className="transition-all duration-300 hover:scale-105 hover:shadow-md"
+                onClick={() => {
+                  if (showAllResources) {
+                    setShowAllResources(false)
+                  } else {
+                    setShowAllResources(true)
+                  }
+                }}
+              >
+                {showAllResources ? 'Show Less Resources' : 'Load More Resources'}
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -211,9 +188,6 @@ export default function ResourcesPage() {
                     <p className="text-sm text-muted-foreground mb-4 transition-all duration-300 hover:text-foreground">
                       {category.description}
                     </p>
-                    <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md" disabled>
-                      {category.buttonText}
-                    </Button>
                   </div>
                 )
               })
@@ -224,25 +198,21 @@ export default function ResourcesPage() {
                   title: 'Research Papers',
                   description: 'Academic research on water resources, climate change, and development in the Nile Basin.',
                   icon: 'FileText',
-                  buttonText: 'Browse Papers',
                 },
                 {
                   title: 'Case Studies',
                   description: 'Detailed examinations of specific projects and initiatives in the Nile Basin region.',
                   icon: 'BookOpen',
-                  buttonText: 'Browse Case Studies',
                 },
                 {
                   title: 'Reports',
                   description: 'Comprehensive reports on the state of water resources, development, and cooperation in the Nile Basin.',
                   icon: 'FileText',
-                  buttonText: 'Browse Reports',
                 },
                 {
                   title: 'Presentations',
                   description: 'Slides and materials from past events and conferences hosted by the FRIENDS Forum.',
                   icon: 'BookOpen',
-                  buttonText: 'Browse Presentations',
                 },
               ].map((category, index) => {
                 const IconComponent = iconMap[category.icon] || FileText
@@ -255,9 +225,6 @@ export default function ResourcesPage() {
                     <p className="text-sm text-muted-foreground mb-4 transition-all duration-300 hover:text-foreground">
                       {category.description}
                     </p>
-                    <Button variant="outline" size="sm" className="transition-all duration-300 hover:scale-105 hover:shadow-md" disabled>
-                      {category.buttonText}
-                    </Button>
                   </div>
                 )
               })
@@ -328,16 +295,11 @@ function ResourcesPageSkeleton() {
         </div>
       </section>
 
-      {/* Search and Resources Section Skeleton */}
+      {/* Resources Section Skeleton */}
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
-          <div className="max-w-3xl mx-auto">
-            <Skeleton className="h-12 w-full" />
-          </div>
-
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-9 w-32" />
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -377,7 +339,6 @@ function ResourcesPageSkeleton() {
                 <Skeleton className="h-12 w-12 mx-auto mb-4 rounded-full" />
                 <Skeleton className="h-6 w-32 mx-auto mb-2" />
                 <Skeleton className="h-16 w-full mx-auto mb-4" />
-                <Skeleton className="h-9 w-32 mx-auto" />
               </div>
             ))}
           </div>

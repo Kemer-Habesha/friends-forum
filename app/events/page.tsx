@@ -24,11 +24,10 @@ const iconMap: Record<string, any> = {
 export default function EventsPage() {
   const { openSignupModal } = useAuth()
   const router = useRouter()
-  const [viewMode, setViewMode] = useState<"list" | "calendar">("list")
-  const [filterMyEvents, setFilterMyEvents] = useState(false)
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showAllEvents, setShowAllEvents] = useState(false)
 
   useEffect(() => {
     async function fetchData() {
@@ -120,42 +119,18 @@ export default function EventsPage() {
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-slide-in-bottom delay-400">
             <h2 className="text-3xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-left">{data.upcomingEvents.title}</h2>
-            <div className="flex gap-2 animate-fade-in-right delay-500">
-              <Button
-                variant={viewMode === "calendar" ? "default" : "outline"}
-                size="sm"
-                className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg"
-                onClick={() => setViewMode("calendar")}
-              >
-                <Calendar className="h-4 w-4 mr-2 transition-all duration-300 hover:scale-125 hover:rotate-12" />
-                Calendar View
-              </Button>
-              <Button
-                variant={filterMyEvents ? "default" : "outline"}
-                size="sm"
-                className="transition-all duration-500 hover:scale-110 hover:-rotate-3 hover:shadow-lg"
-                onClick={() => setFilterMyEvents(!filterMyEvents)}
-              >
-                <Users className="h-4 w-4 mr-2 transition-all duration-300 hover:scale-125 hover:-rotate-12" />
-                My Events
-              </Button>
-            </div>
+            {data.upcomingEvents?.events && data.upcomingEvents.events.length > 0 && (
+              <div className="text-sm text-muted-foreground">
+                Showing {showAllEvents ? data.upcomingEvents.events.length : Math.min(9, data.upcomingEvents.events.length)} of {data.upcomingEvents.events.length} events
+              </div>
+            )}
           </div>
 
-          {viewMode === "calendar" ? (
-            <div className="bg-background rounded-lg border p-6 animate-fade-in-up delay-300">
-              <div className="text-center p-8">
-                <Calendar className="h-16 w-16 mx-auto text-primary mb-4 transition-all duration-300 hover:scale-110" />
-                <h3 className="text-xl font-bold mb-2 transition-all duration-300 hover:text-primary">Calendar View Coming Soon</h3>
-                <p className="text-muted-foreground mb-4 transition-all duration-300 hover:text-foreground">
-                  We're working on a calendar view to help you better plan your participation in our events.
-                </p>
-                <Button className="transition-all duration-300 hover:scale-110 hover:shadow-lg" onClick={() => setViewMode("list")}>Return to List View</Button>
-              </div>
-            </div>
-          ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {data.upcomingEvents?.events?.map((event: any, index: number) => (
+              {(showAllEvents 
+                ? data.upcomingEvents?.events 
+                : data.upcomingEvents?.events?.slice(0, 9)
+              )?.map((event: any, index: number) => (
                 <div key={index} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:-translate-y-2 animate-bounce-in delay-${600 + (index * 150)}`}>
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
                   <div className="relative z-10">
@@ -194,7 +169,6 @@ export default function EventsPage() {
                 </div>
               ))}
             </div>
-          )}
 
           {(!data.upcomingEvents?.events || data.upcomingEvents.events.length === 0) && (
             <div className="text-center py-12">
@@ -206,17 +180,23 @@ export default function EventsPage() {
             </div>
           )}
 
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => {
-                // In a real app, this would load more events
-                alert("Loading more events...")
-              }}
-            >
-              Load More Events
-            </Button>
-          </div>
+          {data.upcomingEvents?.events && data.upcomingEvents.events.length >= 10 && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (showAllEvents) {
+                    setShowAllEvents(false)
+                  } else {
+                    setShowAllEvents(true)
+                  }
+                }}
+                className="transition-all duration-300 hover:scale-110 hover:shadow-lg"
+              >
+                {showAllEvents ? 'Show Less Events' : 'Load More Events'}
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -296,17 +276,19 @@ export default function EventsPage() {
               </p>
             </div>
           )}
-          <div className="flex justify-center mt-8">
-            <Button
-              variant="outline"
-              onClick={() => {
-                // In a real app, this would navigate to past events page
-                alert("Viewing all past events...")
-              }}
-            >
-              View All Past Events
-            </Button>
-          </div>
+          {data.pastEvents?.events && data.pastEvents.events.length >= 10 && (
+            <div className="flex justify-center mt-8">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // In a real app, this would navigate to past events page
+                  alert("Viewing all past events...")
+                }}
+              >
+                View All Past Events
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -366,10 +348,6 @@ function EventsPageSkeleton() {
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <Skeleton className="h-8 w-48" />
-            <div className="flex gap-2">
-              <Skeleton className="h-9 w-32" />
-              <Skeleton className="h-9 w-24" />
-            </div>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
