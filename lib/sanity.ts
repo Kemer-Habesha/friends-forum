@@ -33,7 +33,7 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: process.env.NODE_ENV === 'production', // Enable CDN in production for better performance
+  useCdn: false, // Enable CDN in production for better performance
 })
 
 // Cached client for better performance
@@ -41,7 +41,7 @@ export const cachedClient = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true, // Always use CDN for cached queries
+  useCdn: process.env.NODE_ENV === 'production', // Always use CDN for cached queries
   perspective: 'published',
 })
 
