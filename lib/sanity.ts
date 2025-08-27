@@ -3,9 +3,7 @@ import imageUrlBuilder from '@sanity/image-url'
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 
 // Cache configuration
-const CACHE_TIME = process.env.NODE_ENV === 'development' 
-  ? 30 * 1000 // 30 seconds in development
-  : 5 * 60 * 1000 // 5 minutes in production
+const CACHE_TIME = 30 * 1000
 const cache = new Map<string, { data: any; timestamp: number }>()
 
 // Cache utility functions
@@ -51,6 +49,11 @@ export const cachedClient = createClient({
 export const enhancedCachedClient = {
   ...cachedClient,
   async fetch<T>(query: string, params?: any): Promise<T> {
+    // In development, bypass cache completely for immediate updates
+    if (process.env.NODE_ENV === 'development') {
+      return await cachedClient.fetch<T>(query, params)
+    }
+    
     const cacheKey = `${query}-${JSON.stringify(params || {})}`
     
     // Check memory cache first
