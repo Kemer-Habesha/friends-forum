@@ -82,7 +82,7 @@ export default function Home() {
               <p className="text-xl text-white/90 drop-shadow transition-all duration-300 animate-fade-in-up delay-400">
                 {pageData.hero.subtitle}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-fade-in-up delay-500">
+              <div className="flex justify-start pt-4 animate-fade-in-up delay-500">
                 <Button 
                   size="lg" 
                   className="w-full sm:w-auto transition-all duration-300 hover:scale-110 hover:shadow-lg" 
@@ -90,16 +90,6 @@ export default function Home() {
                 >
                   <Link href={pageData.hero.primaryButton.action === 'signup' ? '#signup' : pageData.hero.primaryButton.targetPage || '/'}>
                     {pageData.hero.primaryButton.text}
-                  </Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="w-full sm:w-auto bg-white/90 hover:bg-white transition-all duration-300 hover:scale-110 hover:shadow-lg"
-                  asChild
-                >
-                  <Link href={pageData.hero.secondaryButton.action === 'signup' ? '#signup' : pageData.hero.secondaryButton.targetPage || '/'}>
-                    {pageData.hero.secondaryButton.text}
                   </Link>
                 </Button>
               </div>
@@ -277,8 +267,7 @@ function HomePageSkeleton() {
                 <div className="text-xl text-white/90 drop-shadow">
                   <Skeleton className="h-6 w-3/4" />
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Skeleton className="h-12 w-32" />
+                <div className="flex justify-start pt-4">
                   <Skeleton className="h-12 w-32" />
                 </div>
               </div>
