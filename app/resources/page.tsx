@@ -2,8 +2,7 @@
 
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, FileText, Download, BookOpen, Filter, Youtube } from "lucide-react"
+import {  FileText, Download, BookOpen, Filter, Youtube } from "lucide-react"
 import { enhancedCachedClient, resourcesPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
 const resources = [
@@ -398,90 +397,5 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   Presentation: BookOpen, // Using BookOpen as fallback for Presentation
 }
 
-function ResourcesPageSkeleton() {
-  return (
-    <div className="space-y-8">
-      {/* Hero Section Skeleton */}
-      <section className="bg-muted py-12 md:py-24">
-        <div className="container">
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <div className="flex items-center justify-center gap-4">
-              <Skeleton className="h-12 w-48" />
-              <Skeleton className="h-9 w-24" />
-            </div>
-            <Skeleton className="h-6 w-96" />
-          </div>
-        </div>
-      </section>
 
-      {/* Search and Resources Section Skeleton */}
-      <section className="container py-12 md:py-24">
-        <div className="space-y-8">
-          <div className="max-w-3xl mx-auto">
-            <Skeleton className="h-12 w-full" />
-          </div>
-
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-9 w-32" />
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="group relative overflow-hidden rounded-lg border bg-background p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <Skeleton className="h-5 w-5" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-                <Skeleton className="h-6 w-full mb-2" />
-                <Skeleton className="h-16 w-full mb-4" />
-                <Skeleton className="h-4 w-32 mb-4" />
-                <div className="flex justify-between items-center">
-                  <Skeleton className="h-9 w-20" />
-                  <Skeleton className="h-9 w-32" />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-center">
-            <Skeleton className="h-10 w-40" />
-          </div>
-        </div>
-      </section>
-
-      {/* Resource Categories Section Skeleton */}
-      <section className="bg-muted py-12 md:py-24">
-        <div className="container">
-          <div className="text-center mb-12">
-            <Skeleton className="h-8 w-48 mx-auto mb-4" />
-            <Skeleton className="h-6 w-2xl mx-auto" />
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-background rounded-lg p-6 text-center">
-                <Skeleton className="h-12 w-12 mx-auto mb-4 rounded-full" />
-                <Skeleton className="h-6 w-32 mx-auto mb-2" />
-                <Skeleton className="h-16 w-full mx-auto mb-4" />
-                <Skeleton className="h-9 w-32 mx-auto" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Submit Resource Section Skeleton */}
-      <section className="container py-12 md:py-24">
-        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-          <Skeleton className="h-[400px] w-full rounded-lg" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
 
