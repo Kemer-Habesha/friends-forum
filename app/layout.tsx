@@ -4,9 +4,11 @@ import { Inter } from "next/font/google"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { AuthProvider } from "@/contexts/auth-context"
+import QueryProvider from "@/contexts/query-provider"
 import AuthModals from "@/components/auth-modals"
 import { PerformanceMonitor } from "@/components/performance-monitor"
 import { ServiceWorkerRegister } from "@/components/service-worker-register"
+import CacheStatus from "@/components/cache-status"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -98,14 +100,17 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <AuthModals />
-          <PerformanceMonitor />
-          <ServiceWorkerRegister />
+          <QueryProvider>
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <AuthModals />
+            <PerformanceMonitor />
+            <ServiceWorkerRegister />
+            {process.env.NODE_ENV === 'development' && <CacheStatus />}
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

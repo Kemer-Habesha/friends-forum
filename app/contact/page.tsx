@@ -1,19 +1,17 @@
 "use client"
 
-import type React from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Mail, Phone, MapPin, Globe, MessageCircle } from "lucide-react"
-import { useState, useEffect } from "react"
-import { enhancedCachedClient, contactPageQuery } from "@/lib/sanity"
+import { Mail, Phone, MapPin, Clock, Send } from "lucide-react"
+import { useState } from "react"
+import { contactPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
+import { useSanityQuery, queryKeys } from "@/hooks/useSanityQuery"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ContactPage() {
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -24,21 +22,26 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        const result = await enhancedCachedClient.fetch(contactPageQuery)
-        setData(result)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data')
-      } finally {
-        setLoading(false)
-      }
-    }
+  const { data, isLoading, error } = useSanityQuery(
+    queryKeys.contactPage,
+    contactPageQuery
+  )
 
-    fetchData()
-  }, [])
+  if (isLoading) {
+    return <ContactPageSkeleton />
+  }
+
+  if (error || !data) {
+    return (
+      <div className="container py-12 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Page</h1>
+        <p className="text-muted-foreground">Failed to load page content. Please try again later.</p>
+      </div>
+    )
+  }
+
+  // Type assertion to fix TypeScript errors
+  const pageData = data as any
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target
@@ -79,63 +82,8 @@ export default function ContactPage() {
     Mail,
     Phone,
     MapPin,
-    Globe,
-    MessageCircle,
-  }
-
-  if (loading) {
-    return (
-      <div className="container py-12 md:py-24">
-        <div className="space-y-8">
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <div className="h-12 bg-muted rounded animate-pulse"></div>
-            <div className="h-6 bg-muted rounded animate-pulse max-w-2xl mx-auto"></div>
-          </div>
-          <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-6">
-              <div className="h-8 bg-muted rounded animate-pulse"></div>
-              <div className="h-4 bg-muted rounded animate-pulse max-w-md"></div>
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="h-12 bg-muted rounded animate-pulse"></div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div className="h-8 bg-muted rounded animate-pulse"></div>
-              <div className="h-4 bg-muted rounded animate-pulse max-w-md"></div>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-muted rounded animate-pulse"></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="container py-12 md:py-24">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-destructive mb-4">Error Loading Contact Page</h1>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!data) {
-    return (
-      <div className="container py-12 md:py-24">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">No Contact Content Found</h1>
-          <p className="text-muted-foreground">Please check back later or contact support.</p>
-        </div>
-      </div>
-    )
+    Clock,
+    Send,
   }
 
   return (
@@ -143,9 +91,9 @@ export default function ContactPage() {
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold tracking-tight">{data.hero?.title || 'Contact Us'}</h1>
+            <h1 className="text-4xl font-bold tracking-tight">{pageData.hero?.title || 'Contact Us'}</h1>
             <p className="text-xl text-muted-foreground">
-              {data.hero?.subtitle || 'Get in touch with the FRIENDS Forum team for inquiries, collaboration opportunities, or to learn more about our work.'}
+              {pageData.hero?.subtitle || 'Get in touch with the FRIENDS Forum team for inquiries, collaboration opportunities, or to learn more about our work.'}
             </p>
           </div>
         </div>
@@ -155,15 +103,15 @@ export default function ContactPage() {
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">{data.contactForm?.title || 'Get in Touch'}</h2>
+              <h2 className="text-3xl font-bold tracking-tight">{pageData.contactForm?.title || 'Get in Touch'}</h2>
               <p className="text-muted-foreground mt-2">
-                {data.contactForm?.description || 'We\'d love to hear from you. Fill out the form below and we\'ll get back to you as soon as possible.'}
+                {pageData.contactForm?.description || 'We\'d love to hear from you. Fill out the form below and we\'ll get back to you as soon as possible.'}
               </p>
             </div>
             {isSuccess && (
               <div className="bg-green-50 border border-green-200 text-green-800 rounded-md p-4">
-                <p className="font-medium">{data.contactForm?.successMessage?.title || 'Thank you for your message!'}</p>
-                <p className="text-sm">{data.contactForm?.successMessage?.description || 'We\'ll get back to you as soon as possible.'}</p>
+                <p className="font-medium">{pageData.contactForm?.successMessage?.title || 'Thank you for your message!'}</p>
+                <p className="text-sm">{pageData.contactForm?.successMessage?.description || 'We\'ll get back to you as soon as possible.'}</p>
               </div>
             )}
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -173,14 +121,14 @@ export default function ContactPage() {
                     htmlFor="firstName"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {data.contactForm?.formFields?.firstName?.label || 'First Name'}
+                    {pageData.contactForm?.formFields?.firstName?.label || 'First Name'}
                   </label>
                   <Input
                     id="firstName"
-                    placeholder={data.contactForm?.formFields?.firstName?.placeholder || "Enter your first name"}
+                    placeholder={pageData.contactForm?.formFields?.firstName?.placeholder || "Enter your first name"}
                     value={formData.firstName}
                     onChange={handleChange}
-                    required={data.contactForm?.formFields?.firstName?.required ?? true}
+                    required={pageData.contactForm?.formFields?.firstName?.required ?? true}
                   />
                 </div>
                 <div className="space-y-2">
@@ -188,14 +136,14 @@ export default function ContactPage() {
                     htmlFor="lastName"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    {data.contactForm?.formFields?.lastName?.label || 'Last Name'}
+                    {pageData.contactForm?.formFields?.lastName?.label || 'Last Name'}
                   </label>
                   <Input
                     id="lastName"
-                    placeholder={data.contactForm?.formFields?.lastName?.placeholder || "Enter your last name"}
+                    placeholder={pageData.contactForm?.formFields?.lastName?.placeholder || "Enter your last name"}
                     value={formData.lastName}
                     onChange={handleChange}
-                    required={data.contactForm?.formFields?.lastName?.required ?? true}
+                    required={pageData.contactForm?.formFields?.lastName?.required ?? true}
                   />
                 </div>
               </div>
@@ -204,15 +152,15 @@ export default function ContactPage() {
                   htmlFor="email"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  {data.contactForm?.formFields?.email?.label || 'Email'}
+                  {pageData.contactForm?.formFields?.email?.label || 'Email'}
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder={data.contactForm?.formFields?.email?.placeholder || "Enter your email"}
+                  placeholder={pageData.contactForm?.formFields?.email?.placeholder || "Enter your email"}
                   value={formData.email}
                   onChange={handleChange}
-                  required={data.contactForm?.formFields?.email?.required ?? true}
+                  required={pageData.contactForm?.formFields?.email?.required ?? true}
                 />
               </div>
               <div className="space-y-2">
@@ -220,14 +168,14 @@ export default function ContactPage() {
                   htmlFor="subject"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  {data.contactForm?.formFields?.subject?.label || 'Subject'}
+                  {pageData.contactForm?.formFields?.subject?.label || 'Subject'}
                 </label>
                 <Input
                   id="subject"
-                  placeholder={data.contactForm?.formFields?.subject?.placeholder || "Enter the subject"}
+                  placeholder={pageData.contactForm?.formFields?.subject?.placeholder || "Enter the subject"}
                   value={formData.subject}
                   onChange={handleChange}
-                  required={data.contactForm?.formFields?.subject?.required ?? true}
+                  required={pageData.contactForm?.formFields?.subject?.required ?? true}
                 />
               </div>
               <div className="space-y-2">
@@ -235,32 +183,32 @@ export default function ContactPage() {
                   htmlFor="message"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  {data.contactForm?.formFields?.message?.label || 'Message'}
+                  {pageData.contactForm?.formFields?.message?.label || 'Message'}
                 </label>
                 <Textarea
                   id="message"
-                  placeholder={data.contactForm?.formFields?.message?.placeholder || "Enter your message"}
-                  className={data.contactForm?.formFields?.message?.minHeight || "min-h-32"}
+                  placeholder={pageData.contactForm?.formFields?.message?.placeholder || "Enter your message"}
+                  className={pageData.contactForm?.formFields?.message?.minHeight || "min-h-32"}
                   value={formData.message}
                   onChange={handleChange}
-                  required={data.contactForm?.formFields?.message?.required ?? true}
+                  required={pageData.contactForm?.formFields?.message?.required ?? true}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (data.contactForm?.submitButton?.loadingText || "Sending...") : (data.contactForm?.submitButton?.text || "Send Message")}
+                {isSubmitting ? (pageData.contactForm?.submitButton?.loadingText || "Sending...") : (pageData.contactForm?.submitButton?.text || "Send Message")}
               </Button>
             </form>
           </div>
           <div className="space-y-6">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight">{data.contactInformation?.title || 'Contact Information'}</h2>
+              <h2 className="text-3xl font-bold tracking-tight">{pageData.contactInformation?.title || 'Contact Information'}</h2>
               <p className="text-muted-foreground mt-2">
-                {data.contactInformation?.description || 'You can reach us through the following channels or visit our office.'}
+                {pageData.contactInformation?.description || 'You can reach us through the following channels or visit our office.'}
               </p>
             </div>
             <div className="space-y-4">
-              {data.contactInformation?.contactMethods && data.contactInformation.contactMethods.length > 0 ? (
-                data.contactInformation.contactMethods.map((method: any, index: number) => {
+              {pageData.contactInformation?.contactMethods && pageData.contactInformation.contactMethods.length > 0 ? (
+                pageData.contactInformation.contactMethods.map((method: any, index: number) => {
                   const IconComponent = iconMap[method.icon] || Mail
                   return (
                     <div key={index} className="flex items-start gap-4">
@@ -341,9 +289,9 @@ export default function ContactPage() {
               )}
             </div>
             <div className="relative h-[300px] rounded-lg overflow-hidden">
-              {data.contactInformation?.mapImage ? (
+              {pageData.contactInformation?.mapImage ? (
                 <Image
-                  src={urlFor(data.contactInformation.mapImage).url()}
+                  src={urlFor(pageData.contactInformation.mapImage).url()}
                   alt="Office Location Map"
                   fill
                   className="object-cover"
@@ -364,14 +312,14 @@ export default function ContactPage() {
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">{data.faq?.title || 'Frequently Asked Questions'}</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4">{pageData.faq?.title || 'Frequently Asked Questions'}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              {data.faq?.subtitle || 'Find answers to common questions about the FRIENDS Forum and our work.'}
+              {pageData.faq?.subtitle || 'Find answers to common questions about the FRIENDS Forum and our work.'}
             </p>
           </div>
           <div className="max-w-3xl mx-auto space-y-4">
-            {data.faq?.questions && data.faq.questions.length > 0 ? (
-              data.faq.questions.map((faq: any, index: number) => (
+            {pageData.faq?.questions && pageData.faq.questions.length > 0 ? (
+              pageData.faq.questions.map((faq: any, index: number) => (
                 <div key={index} className="rounded-lg border bg-background p-6">
                   <h3 className="font-bold text-lg mb-2">{faq.question}</h3>
                   <p className="text-muted-foreground">
@@ -411,6 +359,39 @@ export default function ContactPage() {
         </div>
       </section>
     </>
+  )
+}
+
+function ContactPageSkeleton() {
+  return (
+    <div className="container py-12 md:py-24">
+      <div className="space-y-8">
+        <div className="text-center space-y-4 max-w-3xl mx-auto">
+          <Skeleton className="h-12 w-3/4" />
+          <Skeleton className="h-6 w-2/3" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
+          <div className="space-y-6">
+            <Skeleton className="h-8" />
+            <Skeleton className="h-4 w-1/2" />
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12" />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-8" />
+            <Skeleton className="h-4 w-1/2" />
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

@@ -49,11 +49,6 @@ export const cachedClient = createClient({
 export const enhancedCachedClient = {
   ...cachedClient,
   async fetch<T>(query: string, params?: any): Promise<T> {
-    // In development, bypass cache completely for immediate updates
-    if (process.env.NODE_ENV === 'development') {
-      return await cachedClient.fetch<T>(query, params)
-    }
-    
     const cacheKey = `${query}-${JSON.stringify(params || {})}`
     
     // Check memory cache first
@@ -425,4 +420,52 @@ export const focusAreasQuery = `*[_type == "homePage"][0].focusAreas.focusAreas[
   description,
   icon,
   image
+}`
+
+// GROQ query for site-wide settings
+export const siteSettingsQuery = `*[_type == "siteSettings"][0] {
+  title,
+  logo,
+  navigation {
+    menuItems[] {
+      label,
+      link,
+      order
+    }
+  },
+  footer {
+    description,
+    quickLinks {
+      title,
+      links[] {
+        label,
+        link
+      }
+    },
+    contactInfo {
+      title,
+      email,
+      phone,
+      address
+    },
+    socialMedia {
+      title,
+      platforms[] {
+        platform,
+        url,
+        enabled
+      }
+    },
+    copyright
+  },
+  ctaButtons {
+    signInButton {
+      text,
+      variant
+    },
+    joinUsButton {
+      text,
+      variant
+    }
+  }
 }`
