@@ -114,7 +114,7 @@ export default function ForumPage() {
             <p className="text-xl text-muted-foreground transition-all duration-500 hover:text-foreground hover:scale-105 animate-fade-in-up delay-600">
               {data.hero?.subtitle || 'Engage in meaningful dialogue with researchers, experts, and stakeholders from across the Nile Basin region.'}
             </p>
-            <div className="pt-4 flex justify-center animate-fade-in-scale delay-800">
+            {/* <div className="pt-4 flex justify-center animate-fade-in-scale delay-800">
               {data.hero?.ctaButton?.action === 'signup' ? (
                 <Button size="lg" className="transition-all duration-700 hover:scale-125 hover:rotate-3 hover:shadow-2xl hover:shadow-primary/30" onClick={openSignupModal}>
                   {data.hero.ctaButton.text || 'Join the Conversation'}
@@ -128,7 +128,7 @@ export default function ForumPage() {
                   Join the Conversation
                 </Button>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
       </section>

@@ -2,15 +2,15 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
+
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
+
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
-  const { openLoginModal, openSignupModal } = useAuth()
+
 
   const isActive = (path: string) => {
     return pathname === path

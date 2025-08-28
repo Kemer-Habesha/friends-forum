@@ -1,10 +1,38 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, FileText, Download, BookOpen, Filter } from "lucide-react"
+import { Search, FileText, Download, BookOpen, Filter, Youtube } from "lucide-react"
 import { enhancedCachedClient, resourcesPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
-
+const resources = [
+  {
+    id: 1,
+    title: "2025 Bikila Award Press Release",
+    description: "Official press release document for the 2025 Bikila Award ceremony.",
+    authors: "Bikila Award Committee",
+    readLink: "https://res.cloudinary.com/dz0p3pvey/image/upload/v1756362248/2025-Bikila_Award_Press_Release_odzton.pdf",
+    downloadLink: "https://res.cloudinary.com/dz0p3pvey/image/upload/v1756362248/2025-Bikila_Award_Press_Release_odzton.pdf",
+    type: "Press Release"
+  },
+  {
+    id: 2,
+    title: "Introduction to FRIENDS (Updated 2025)",
+    description: "Comprehensive introduction to the FRIENDS initiative, updated on July 29, 2025.",
+    authors: "FRIENDS Project Team",
+    readLink: "https://res.cloudinary.com/dz0p3pvey/raw/upload/v1756362099/Introduction_to_FRIENDS___Updated_07-29-2025_mvheia.docx",
+    downloadLink: "https://res.cloudinary.com/dz0p3pvey/raw/upload/v1756362099/Introduction_to_FRIENDS___Updated_07-29-2025_mvheia.docx",
+    type: "Introduction"
+  },
+  {
+    id: 3,
+    title: "Impacts of the GERD on Sudan",
+    description: "Research paper by Sudanese Professionals Team on the implications of the GERD project for Sudan.",
+    authors: "Sudanese Professionals Team",
+    readLink: "https://res.cloudinary.com/dz0p3pvey/image/upload/v1756362101/Paper_by_Sudanese_Professionas_Team_Member__Impacts_of_the_GERD_on_Sudan_tzhu2z.pdf",
+    downloadLink: "https://res.cloudinary.com/dz0p3pvey/image/upload/v1756362101/Paper_by_Sudanese_Professionas_Team_Member__Impacts_of_the_GERD_on_Sudan_tzhu2z.pdf",
+    type: "Research Paper"
+  },
+]
 // Server-side data fetching
 async function getResourcesPageData() {
   try {
@@ -56,7 +84,7 @@ export default async function ResourcesPage() {
 
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
-          <div className="max-w-3xl mx-auto animate-slide-in-bottom delay-1000">
+          {/* <div className="max-w-3xl mx-auto animate-slide-in-bottom delay-1000">
             <form className="relative group">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-500 group-hover:scale-125 group-hover:rotate-12 group-hover:text-primary" />
               <Input
@@ -65,14 +93,14 @@ export default async function ResourcesPage() {
                 readOnly
               />
             </form>
-          </div>
+          </div> */}
 
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in-left delay-1200">
             <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{data?.featuredResources?.title || 'Featured Resources'}</h2>
-            <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg hover:shadow-primary/25 animate-fade-in-right delay-1400">
+            {/* <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg hover:shadow-primary/25 animate-fade-in-right delay-1400">
               <Filter className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:rotate-12" />
               Filter Resources
-            </Button>
+            </Button> */}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -128,42 +156,63 @@ export default async function ResourcesPage() {
                 </div>
               ))
             ) : (
-              // Fallback content when no resources are available
-              [1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-700 hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:shadow-primary/25 hover:border-primary/50 hover:-translate-y-3 animate-bounce-in delay-${1600 + (i * 150)}`}>
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                  <div className="relative z-10">
-                    <div className="flex items-center gap-4 mb-4">
-                      <FileText className="h-5 w-5 text-primary transition-all duration-500 group-hover:scale-125 group-hover:rotate-12" />
-                      <span className="text-sm font-medium transition-all duration-500 group-hover:text-primary group-hover:font-bold">Research Paper</span>
-                    </div>
-                    <h3 className="text-xl font-bold mb-2 transition-all duration-500 group-hover:text-primary group-hover:scale-105">
-                      Water Resource Management in the Nile Basin: Challenges and Opportunities
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 transition-all duration-500 group-hover:text-foreground">
-                      This paper examines the current state of water resource management in the Nile Basin and identifies
-                      key challenges and opportunities for sustainable development.
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4 transition-all duration-500 group-hover:text-foreground">
-                      <span>Authors: Dr. Abate Tadesse, Dr. Sarah Kimani</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg hover:shadow-primary/25" asChild>
-                        <a href="/resources/read" target="_blank">
-                          <BookOpen className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:rotate-12" />
-                          Read
-                        </a>
-                      </Button>
-                      <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:-rotate-3 hover:shadow-lg hover:shadow-secondary/25" asChild>
-                        <a href="/sample-resource.pdf" download>
-                          <Download className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:-rotate-12" />
-                          Download PDF
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))
+              <>
+              {resources.map((res, i) => (
+        <div
+          key={res.id}
+          className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-700 hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:shadow-primary/25 hover:border-primary/50 hover:-translate-y-3 animate-bounce-in delay-${1600 + (i * 150)}`}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-4">
+              <FileText className="h-5 w-5 text-primary transition-all duration-500 group-hover:scale-125 group-hover:rotate-12" />
+              <span className="text-sm font-medium transition-all duration-500 group-hover:text-primary group-hover:font-bold">
+                {res.type}
+              </span>
+            </div>
+
+            <h3 className="text-xl font-bold mb-2 transition-all duration-500 group-hover:text-primary group-hover:scale-105">
+              {res.title}
+            </h3>
+
+            <p className="text-sm text-muted-foreground mb-4 transition-all duration-500 group-hover:text-foreground">
+              {res.description}
+            </p>
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4 transition-all duration-500 group-hover:text-foreground">
+              <span>Authors: {res.authors}</span>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg hover:shadow-primary/25"
+                asChild
+              >
+                <a href={res.readLink} target="_blank" rel="noopener noreferrer">
+                  <BookOpen className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:rotate-12" />
+                  Read
+                </a>
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="transition-all duration-500 hover:scale-110 hover:-rotate-3 hover:shadow-lg hover:shadow-secondary/25"
+                asChild
+              >
+                <a href={res.downloadLink} download>
+                  <Download className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:-rotate-12" />
+                  Download PDF
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      ))}
+              </>
+             
             )}
           </div>
 
@@ -171,6 +220,56 @@ export default async function ResourcesPage() {
             <Button variant="outline" className="transition-all duration-300 hover:scale-105 hover:shadow-md" disabled>
               Load More Resources
             </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* YouTube Video Section */}
+      <section className="bg-muted py-12 md:py-24">
+        <div className="container">
+          <div className="text-center mb-12 animate-fade-in-up delay-1100">
+            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-primary flex items-center justify-center gap-3">
+              <Youtube className="h-8 w-8 text-red-600 transition-all duration-300 hover:scale-110" />
+              Featured Video
+            </h2>
+            {/* <p className="text-muted-foreground max-w-2xl mx-auto transition-all duration-300 hover:text-foreground">
+              Watch our latest video content about the Nile Basin region and water resource management.
+            </p> */}
+          </div>
+          
+          <div className="max-w-4xl mx-auto animate-fade-in-up delay-1200">
+            <div className="relative aspect-video rounded-lg overflow-hidden shadow-2xl transition-all duration-500 hover:scale-105 hover:shadow-3xl">
+              <iframe
+                src="https://www.youtube.com/embed/_1XSgnAy1KU"
+                title="Featured YouTube Video"
+                className="w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+            
+            <div className="mt-6 text-center space-y-4">
+             
+              <div className="flex justify-center gap-4">
+                <Button 
+                  variant="outline" 
+                  className="transition-all duration-300 hover:scale-105 hover:shadow-md hover:border-red-500 hover:text-red-600"
+                  asChild
+                >
+                  <a 
+                    href="https://www.youtube.com/watch?v=_1XSgnAy1KU" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2"
+                  >
+                    <Youtube className="h-4 w-4" />
+                    Watch on YouTube
+                  </a>
+                </Button>
+               
+              </div>
+            </div>
           </div>
         </div>
       </section>
