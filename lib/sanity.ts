@@ -260,6 +260,25 @@ export const resourcesPageQuery = `*[_type == "resourcesPage"][0] {
       thumbnail
     }
   },
+  videos {
+    title,
+    subtitle,
+    videoList[] {
+      title,
+      description,
+      type,
+      duration,
+      speaker,
+      date,
+      thumbnail,
+      videoUrl,
+      transcriptLink,
+      tags,
+      featured,
+      language,
+      accessibility
+    }
+  },
   resourceCategories {
     title,
     subtitle,
