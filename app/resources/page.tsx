@@ -1,10 +1,9 @@
-"use client"
-
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import {  FileText, Download, BookOpen, Filter, Youtube } from "lucide-react"
 import { enhancedCachedClient, resourcesPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
+
 const resources = [
   {
     id: 1,
@@ -34,19 +33,23 @@ const resources = [
     type: "Research Paper"
   },
 ]
-// Server-side data fetching
-async function getResourcesPageData() {
-  try {
-    const data = await enhancedCachedClient.fetch<any>(resourcesPageQuery)
-    return data
-  } catch (error) {
-    console.error('Failed to fetch resources page data:', error)
-    return null
-  }
+
+// Icon mapping for resource categories
+const iconMap: Record<string, React.ComponentType<any>> = {
+  FileText,
+  BookOpen,
+  Report: FileText, // Using FileText as fallback for Report
+  Presentation: BookOpen, // Using BookOpen as fallback for Presentation
 }
 
 export default async function ResourcesPage() {
-  const data = await getResourcesPageData()
+  let data: any = null
+
+  try {
+    data = await enhancedCachedClient.fetch<any>(resourcesPageQuery)
+  } catch (error) {
+    console.error('Failed to fetch resources page data:', error)
+  }
 
   if (!data) {
     return (
@@ -85,23 +88,8 @@ export default async function ResourcesPage() {
 
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
-          {/* <div className="max-w-3xl mx-auto animate-slide-in-bottom delay-1000">
-            <form className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground transition-all duration-500 group-hover:scale-125 group-hover:rotate-12 group-hover:text-primary" />
-              <Input
-                placeholder={data?.searchSection?.placeholder || "Search resources..."}
-                className="pl-10 transition-all duration-500 hover:border-primary focus:border-primary hover:scale-105 hover:shadow-lg hover:shadow-primary/20"
-                readOnly
-              />
-            </form>
-          </div> */}
-
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in-left delay-1200">
             <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{data?.featuredResources?.title || 'Featured Resources'}</h2>
-            {/* <Button variant="outline" size="sm" className="transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-lg hover:shadow-primary/25 animate-fade-in-right delay-1400">
-              <Filter className="h-4 w-4 mr-2 transition-all duration-500 hover:scale-125 hover:rotate-12" />
-              Filter Resources
-            </Button> */}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -233,9 +221,6 @@ export default async function ResourcesPage() {
               <Youtube className="h-8 w-8 text-red-600 transition-all duration-300 hover:scale-110" />
               Featured Video
             </h2>
-            {/* <p className="text-muted-foreground max-w-2xl mx-auto transition-all duration-300 hover:text-foreground">
-              Watch our latest video content about the Nile Basin region and water resource management.
-            </p> */}
           </div>
           
           <div className="max-w-4xl mx-auto animate-fade-in-up delay-1200">
@@ -387,14 +372,6 @@ export default async function ResourcesPage() {
       </section>
     </>
   )
-}
-
-// Icon mapping for resource categories
-const iconMap: Record<string, React.ComponentType<any>> = {
-  FileText,
-  BookOpen,
-  Report: FileText, // Using FileText as fallback for Report
-  Presentation: BookOpen, // Using BookOpen as fallback for Presentation
 }
 
 
