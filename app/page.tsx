@@ -1,5 +1,3 @@
-"use client"
-
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -7,9 +5,6 @@ import { Calendar, MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
 import NewsletterForm from "@/components/ui/newsletter-form"
 import { urlFor } from "@/lib/sanity"
 import { enhancedCachedClient, homePageQuery } from "@/lib/sanity"
-import { useState, useEffect } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
-
 
 // Icon mapping for focus areas
 const iconMap: Record<string, any> = {
@@ -18,32 +13,11 @@ const iconMap: Record<string, any> = {
   MapPin,
 }
 
-export default function Home() {
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function Home() {
+  // Server-side data fetching
+  const data = await enhancedCachedClient.fetch<any>(homePageQuery)
 
-  const fetchData = async () => {
-    try {
-      setLoading(true)
-      const result = await enhancedCachedClient.fetch<any>(homePageQuery)
-      setData(result)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  if (loading) {
-    return <HomePageSkeleton />
-  }
-
-  if (error || !data) {
+  if (!data) {
     return (
       <div className="container py-12 text-center">
         <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Page</h1>
@@ -270,113 +244,6 @@ export default function Home() {
         </div>
       </section>
     </>
-  )
-}
-
-function HomePageSkeleton() {
-  return (
-    <div className="space-y-8">
-      {/* Hero Section Skeleton */}
-      <section className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-primary/20 z-10" />
-        <div className="relative h-[500px] w-full bg-muted">
-          <div className="absolute inset-0 flex items-center z-20">
-            <div className="container">
-              <div className="max-w-2xl space-y-4">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-white drop-shadow-md">
-                  <Skeleton className="h-16 w-3/4" />
-                </h1>
-                <div className="text-xl text-white/90 drop-shadow">
-                  <Skeleton className="h-6 w-3/4" />
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Skeleton className="h-12 w-32" />
-                  <Skeleton className="h-12 w-32" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission & Focus Section Skeleton */}
-      <section className="container py-12 md:py-24">
-        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-6 w-full" />
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-start gap-4">
-                  <Skeleton className="h-9 w-9 rounded-full" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Events Section Skeleton */}
-      <section className="bg-muted py-12 md:py-24">
-        <div className="container">
-          <div className="flex flex-col items-center justify-center text-center mb-12">
-            <Skeleton className="h-8 w-48 mb-4" />
-            <Skeleton className="h-6 w-3xl" />
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="group relative overflow-hidden rounded-lg border bg-background p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <Skeleton className="h-5 w-5" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-                <Skeleton className="h-6 w-full mb-2" />
-                <Skeleton className="h-16 w-full mb-4" />
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-                <Skeleton className="h-10 w-full mt-4" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Forum Section Skeleton */}
-      <section className="container py-12 md:py-24">
-        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-          <Skeleton className="h-[400px] w-full rounded-lg" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Section Skeleton */}
-      <section className="bg-primary text-primary-foreground py-12 md:py-24">
-        <div className="container">
-          <div className="flex flex-col items-center justify-center text-center mb-8">
-            <Skeleton className="h-8 w-48 mb-4" />
-            <Skeleton className="h-6 w-2xl" />
-          </div>
-          <div className="max-w-md mx-auto">
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </div>
-      </section>
-    </div>
   )
 }
 
