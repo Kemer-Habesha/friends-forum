@@ -92,8 +92,7 @@ export const homePageQuery = `*[_type == "homePage"][0] {
     title,
     subtitle,
     backgroundImage,
-    primaryButton,
-    secondaryButton
+    primaryButton
   },
   mission {
     title,
