@@ -7,6 +7,7 @@ import { urlFor } from "@/lib/sanity"
 import { aboutPageQuery } from "@/lib/sanity"
 import { useSanityQuery, queryKeys } from "@/hooks/useSanityQuery"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Icon mapping for objectives
 const iconMap: Record<string, any> = {
@@ -139,14 +140,15 @@ export default function AboutPage() {
       </section>
 
       <section className="bg-muted py-12 md:py-24">
-        <div className="container">
-          <div className="text-center mb-12 animate-fade-in-up delay-600">
-            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-primary">{pageData.team.title}</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto transition-all duration-300 hover:text-foreground">
-              {pageData.team.subtitle}
-            </p>
-          </div>
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <TooltipProvider>
+          <div className="container">
+            <div className="text-center mb-12 animate-fade-in-up delay-600">
+              <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-primary">{pageData.team.title}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto transition-all duration-300 hover:text-foreground">
+                {pageData.team.subtitle}
+              </p>
+            </div>
+          <div className={`grid gap-8 ${pageData.team.members.length === 1 ? 'justify-center' : ''} ${pageData.team.members.length === 1 ? 'grid-cols-1 max-w-md mx-auto' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
             {pageData.team.members.map((member: any, index: number) => (
               <div key={index} className={`group bg-background rounded-lg p-6 text-center transition-all duration-700 hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-4 animate-bounce-in delay-${1800 + (index * 150)}`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-lg" />
@@ -171,14 +173,33 @@ export default function AboutPage() {
                   </div>
                   <h3 className="font-bold text-lg transition-all duration-500 group-hover:text-primary group-hover:scale-105">{member.name}</h3>
                   <p className="text-sm text-muted-foreground mb-2 transition-all duration-500 group-hover:text-foreground">{member.position}</p>
-                  <p className="text-sm text-muted-foreground transition-all duration-500 group-hover:text-foreground">
-                    {member.bio}
-                  </p>
+                  
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="text-sm text-muted-foreground transition-all duration-500 group-hover:text-foreground line-clamp-2 cursor-help overflow-hidden" style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical' as const,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {member.bio}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent 
+                      side="top" 
+                      className="max-w-xs p-3 text-sm leading-relaxed"
+                      sideOffset={8}
+                    >
+                      <p>{member.bio}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
               </div>
             ))}
           </div>
         </div>
+          </TooltipProvider>
       </section>
 
       <section className="container py-12 md:py-24 relative overflow-hidden">
