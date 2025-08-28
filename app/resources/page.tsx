@@ -3,34 +3,20 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { FileText, Download, BookOpen } from "lucide-react"
-import { enhancedCachedClient, resourcesPageQuery } from "@/lib/sanity"
+import { resourcesPageQuery } from "@/lib/sanity"
 import { urlFor } from "@/lib/sanity"
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useSanityQuery, queryKeys } from "@/hooks/useSanityQuery"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ResourcesPage() {
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [showAllResources, setShowAllResources] = useState(false)
+  const { data, isLoading, error } = useSanityQuery(
+    queryKeys.resourcesPage,
+    resourcesPageQuery
+  )
 
-  const fetchData = async () => {
-    try {
-      setLoading(true)
-      const result = await enhancedCachedClient.fetch<any>(resourcesPageQuery)
-      setData(result)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  if (loading) {
+  if (isLoading) {
     return <ResourcesPageSkeleton />
   }
 
@@ -43,6 +29,9 @@ export default function ResourcesPage() {
     )
   }
 
+  // Type assertion to fix TypeScript errors
+  const pageData = data as any
+
   return (
     <>
       <section className="bg-muted py-12 md:py-24 relative overflow-hidden">
@@ -50,7 +39,7 @@ export default function ResourcesPage() {
         <div className="container relative z-10">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <h1 className="text-4xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1 animate-bounce-in">
-              {(data?.hero?.title || 'Resources').split('').map((letter: string, index: number) => (
+              {(pageData?.hero?.title || 'Resources').split('').map((letter: string, index: number) => (
                 <span
                   key={index}
                   className="inline-block transition-all duration-500 hover:scale-125 hover:rotate-12 hover:text-primary animate-fade-in-up"
@@ -63,7 +52,7 @@ export default function ResourcesPage() {
               ))}
             </h1>
             <p className="text-xl text-muted-foreground transition-all duration-500 hover:text-foreground hover:scale-105 animate-fade-in-up delay-800">
-              {data?.hero?.subtitle || 'Access research papers, case studies, and reports related to the Nile Basin region.'}
+              {pageData?.hero?.subtitle || 'Access research papers, case studies, and reports related to the Nile Basin region.'}
             </p>
           </div>
         </div>
@@ -72,19 +61,19 @@ export default function ResourcesPage() {
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in-left delay-1200">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{data?.featuredResources?.title || 'Featured Resources'}</h2>
-            {data?.featuredResources?.resources && data.featuredResources.resources.length > 0 && (
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{pageData?.featuredResources?.title || 'Featured Resources'}</h2>
+            {pageData?.featuredResources?.resources && pageData.featuredResources.resources.length > 0 && (
               <div className="text-sm text-muted-foreground">
-                Showing {showAllResources ? data.featuredResources.resources.length : Math.min(9, data.featuredResources.resources.length)} of {data.featuredResources.resources.length} resources
+                Showing {showAllResources ? pageData.featuredResources.resources.length : Math.min(9, pageData.featuredResources.resources.length)} of {pageData.featuredResources.resources.length} resources
               </div>
             )}
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {data?.featuredResources?.resources && data.featuredResources.resources.length > 0 ? (
+            {pageData?.featuredResources?.resources && pageData.featuredResources.resources.length > 0 ? (
               (showAllResources 
-                ? data.featuredResources.resources 
-                : data.featuredResources.resources.slice(0, 9)
+                ? pageData.featuredResources.resources 
+                : pageData.featuredResources.resources.slice(0, 9)
               ).map((resource: any, index: number) => (
                 <div key={index} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-700 hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:shadow-primary/25 hover:border-primary/50 hover:-translate-y-3 animate-bounce-in delay-${1600 + (index * 150)}`}>
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
@@ -147,7 +136,7 @@ export default function ResourcesPage() {
             )}
           </div>
 
-          {data?.featuredResources?.resources && data.featuredResources.resources.length >= 10 && (
+          {pageData?.featuredResources?.resources && pageData.featuredResources.resources.length >= 10 && (
             <div className="flex justify-center animate-fade-in-up delay-1000">
               <Button 
                 variant="outline" 
@@ -170,14 +159,14 @@ export default function ResourcesPage() {
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="text-center mb-12 animate-fade-in-up delay-1100">
-            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-primary">{data?.resourceCategories?.title || 'Resource Categories'}</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-primary">{pageData?.resourceCategories?.title || 'Resource Categories'}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto transition-all duration-300 hover:text-foreground">
-              {data?.resourceCategories?.subtitle || 'Browse resources by category to find the information you need.'}
+              {pageData?.resourceCategories?.subtitle || 'Browse resources by category to find the information you need.'}
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {data?.resourceCategories?.categories && data.resourceCategories.categories.length > 0 ? (
-              data.resourceCategories.categories.map((category: any, index: number) => {
+            {pageData?.resourceCategories?.categories && pageData.resourceCategories.categories.length > 0 ? (
+              pageData.resourceCategories.categories.map((category: any, index: number) => {
                 const IconComponent = iconMap[category.icon] || FileText
                 return (
                   <div key={index} className={`bg-background rounded-lg p-6 text-center transition-all duration-300 hover:scale-105 hover:shadow-lg animate-fade-in-up delay-${1200 + (index * 100)}`}>
@@ -236,9 +225,9 @@ export default function ResourcesPage() {
       <section className="container py-12 md:py-24">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
           <div className="relative h-[400px] rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 animate-fade-in-left delay-1600">
-            {data?.submitResource?.image ? (
+            {pageData?.submitResource?.image ? (
               <Image 
-                src={urlFor(data.submitResource.image).url()} 
+                src={urlFor(pageData.submitResource.image).url()} 
                 alt="Submit Resource" 
                 fill 
                 className="object-cover transition-all duration-300 hover:scale-110" 
@@ -253,9 +242,9 @@ export default function ResourcesPage() {
             )}
           </div>
           <div className="space-y-4 animate-fade-in-right delay-1600">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{data?.submitResource?.title || 'Submit a Resource'}</h2>
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{pageData?.submitResource?.title || 'Submit a Resource'}</h2>
             <p className="text-muted-foreground transition-all duration-300 hover:text-foreground">
-              {data?.submitResource?.description || 'We welcome submissions of research papers, case studies, and other resources related to the Nile Basin region. If you have a resource that you would like to share with the FRIENDS Forum community, please submit it for review.'}
+              {pageData?.submitResource?.description || 'We welcome submissions of research papers, case studies, and other resources related to the Nile Basin region. If you have a resource that you would like to share with the FRIENDS Forum community, please submit it for review.'}
             </p>
             <div className="pt-4">
               <Button className="transition-all duration-300 hover:scale-110 hover:shadow-lg" asChild>

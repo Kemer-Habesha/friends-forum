@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
 import NewsletterForm from "@/components/ui/newsletter-form"
 import { urlFor } from "@/lib/sanity"
-import { enhancedCachedClient, homePageQuery } from "@/lib/sanity"
-import { useState, useEffect } from "react"
+import { homePageQuery } from "@/lib/sanity"
+import { useSanityQuery, queryKeys } from "@/hooks/useSanityQuery"
 import { Skeleton } from "@/components/ui/skeleton"
 
 
@@ -19,27 +19,12 @@ const iconMap: Record<string, any> = {
 }
 
 export default function Home() {
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { data, isLoading, error } = useSanityQuery(
+    queryKeys.homePage,
+    homePageQuery
+  )
 
-  const fetchData = async () => {
-    try {
-      setLoading(true)
-      const result = await enhancedCachedClient.fetch<any>(homePageQuery)
-      setData(result)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  if (loading) {
+  if (isLoading) {
     return <HomePageSkeleton />
   }
 
@@ -51,6 +36,9 @@ export default function Home() {
       </div>
     )
   }
+
+  // Type assertion to fix TypeScript errors
+  const pageData = data as any
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -68,8 +56,8 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-primary/20 z-10 animate-fade-in-up" />
         <div className="relative h-[500px] w-full animate-fade-in-scale delay-200">
           <Image
-            src={urlFor(data.hero.backgroundImage).url()}
-            alt={data.hero.title}
+            src={urlFor(pageData.hero.backgroundImage).url()}
+            alt={pageData.hero.title}
             fill
             className="object-cover"
             priority
@@ -79,7 +67,7 @@ export default function Home() {
           <div className="container">
             <div className="max-w-2xl space-y-4">
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-white drop-shadow-md animate-fade-in-up delay-300">
-                {data.hero.title.split('').map((letter: string, index: number) => (
+                {pageData.hero.title.split('').map((letter: string, index: number) => (
                   <span
                     key={index}
                     className="inline-block transition-all duration-300 hover:scale-110 hover:rotate-3 hover:text-transparent hover:bg-clip-text letter-hover"
@@ -92,7 +80,7 @@ export default function Home() {
                 ))}
               </h1>
               <p className="text-xl text-white/90 drop-shadow transition-all duration-300 animate-fade-in-up delay-400">
-                {data.hero.subtitle}
+                {pageData.hero.subtitle}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-fade-in-up delay-500">
                 <Button 
@@ -100,8 +88,8 @@ export default function Home() {
                   className="w-full sm:w-auto transition-all duration-300 hover:scale-110 hover:shadow-lg" 
                   asChild
                 >
-                  <Link href={data.hero.primaryButton.action === 'signup' ? '#signup' : data.hero.primaryButton.targetPage || '/'}>
-                    {data.hero.primaryButton.text}
+                  <Link href={pageData.hero.primaryButton.action === 'signup' ? '#signup' : pageData.hero.primaryButton.targetPage || '/'}>
+                    {pageData.hero.primaryButton.text}
                   </Link>
                 </Button>
                 <Button
@@ -110,8 +98,8 @@ export default function Home() {
                   className="w-full sm:w-auto bg-white/90 hover:bg-white transition-all duration-300 hover:scale-110 hover:shadow-lg"
                   asChild
                 >
-                  <Link href={data.hero.secondaryButton.action === 'signup' ? '#signup' : data.hero.secondaryButton.targetPage || '/'}>
-                    {data.hero.secondaryButton.text}
+                  <Link href={pageData.hero.secondaryButton.action === 'signup' ? '#signup' : pageData.hero.secondaryButton.targetPage || '/'}>
+                    {pageData.hero.secondaryButton.text}
                   </Link>
                 </Button>
               </div>
@@ -124,23 +112,23 @@ export default function Home() {
       <section className="container py-12 md:py-24">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{data.mission?.title || 'Our Mission'}</h2>
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{pageData.mission?.title || 'Our Mission'}</h2>
             <p className="text-muted-foreground transition-all duration-300 hover:text-foreground">
-              {data.mission?.content || 'Mission content loading...'}
+              {pageData.mission?.content || 'Mission content loading...'}
             </p>
-            {data.mission?.learnMoreLink && (
+            {pageData.mission?.learnMoreLink && (
               <div className="flex items-center gap-4 pt-4">
-                <Link href={data.mission.learnMoreLink.url} className="inline-flex items-center gap-2 text-primary hover:underline transition-all duration-300 hover:scale-105 hover:text-primary/80">
-                  {data.mission.learnMoreLink.text} <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                <Link href={pageData.mission.learnMoreLink.url} className="inline-flex items-center gap-2 text-primary hover:underline transition-all duration-300 hover:scale-105 hover:text-primary/80">
+                  {pageData.mission.learnMoreLink.text} <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </div>
             )}
           </div>
           <div className="space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{data.focusAreas?.title || 'Our Focus'}</h2>
-            <p className="text-muted-foreground transition-all duration-300 hover:text-foreground">{data.focusAreas?.subtitle || 'Focus areas description...'}</p>
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{pageData.focusAreas?.title || 'Our Focus'}</h2>
+            <p className="text-muted-foreground transition-all duration-300 hover:text-foreground">{pageData.focusAreas?.subtitle || 'Focus areas description...'}</p>
             <ul className="grid gap-4">
-              {data.focusAreas?.focusAreas?.map((area: any, index: number) => {
+              {pageData.focusAreas?.focusAreas?.map((area: any, index: number) => {
                 const IconComponent = iconMap[area.icon]
                 return (
                   <li key={index} className="flex items-start gap-4 p-3 rounded-lg transition-all duration-300 hover:bg-muted/50 hover:scale-105">
@@ -167,13 +155,13 @@ export default function Home() {
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="flex flex-col items-center justify-center text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-primary">{data.events?.title || 'Upcoming Events'}</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-primary">{pageData.events?.title || 'Upcoming Events'}</h2>
             <p className="text-muted-foreground max-w-3xl transition-all duration-300 hover:text-foreground">
-              {data.events?.subtitle || 'Join our virtual and in-person meetings to connect with researchers, technical experts, and professionals from across the Nile Basin region.'}
+              {pageData.events?.subtitle || 'Join our virtual and in-person meetings to connect with researchers, technical experts, and professionals from across the Nile Basin region.'}
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {data.events?.events?.map((event: any, index: number) => (
+            {pageData.events?.events?.map((event: any, index: number) => (
               <div key={index}>
                 <div className="group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary/50">
                   <div className="flex items-center gap-4 mb-4">
@@ -223,9 +211,9 @@ export default function Home() {
       <section className="container py-12 md:py-24">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
                     <div className="relative h-[400px] rounded-lg overflow-hidden transition-all duration-300 hover:scale-105">
-            {data.forum?.backgroundImage ? (
+            {pageData.forum?.backgroundImage ? (
               <Image 
-                src={urlFor(data.forum.backgroundImage).url()}
+                src={urlFor(pageData.forum.backgroundImage).url()}
                 alt="Forum Discussion" 
                 fill 
                 className="object-cover transition-all duration-300 hover:scale-110" 
@@ -237,15 +225,15 @@ export default function Home() {
             )}
           </div>
           <div className="space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{data.forum?.title || 'Join Our Forum'}</h2>
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{pageData.forum?.title || 'Join Our Forum'}</h2>
             <p className="text-muted-foreground transition-all duration-300 hover:text-foreground">
-              {data.forum?.description || 'Connect with other members and participate in discussions about the Nile Basin region.'}
+              {pageData.forum?.description || 'Connect with other members and participate in discussions about the Nile Basin region.'}
             </p>
-            {data.forum?.ctaButton && (
+            {pageData.forum?.ctaButton && (
               <div className="pt-4">
                 <Button asChild className="transition-all duration-300 hover:scale-110 hover:shadow-lg">
-                  <Link href={data.forum.ctaButton.action === 'signup' ? '#signup' : data.forum.ctaButton.targetPage || '/forum'}>
-                    {data.forum.ctaButton.text}
+                  <Link href={pageData.forum.ctaButton.action === 'signup' ? '#signup' : pageData.forum.ctaButton.targetPage || '/forum'}>
+                    {pageData.forum.ctaButton.text}
                   </Link>
                 </Button>
               </div>
@@ -258,14 +246,14 @@ export default function Home() {
       <section className="bg-primary text-primary-foreground py-12 md:py-24">
         <div className="container">
           <div className="flex flex-col items-center justify-center text-center mb-8">
-            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-yellow-200">{data.newsletter?.title || 'Stay Updated'}</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-300 hover:text-yellow-200">{pageData.newsletter?.title || 'Stay Updated'}</h2>
             <p className="max-w-2xl text-primary-foreground/90 transition-all duration-300 hover:text-primary-foreground">
-              {data.newsletter?.description || 'Subscribe to our newsletter for the latest updates and insights.'}
+              {pageData.newsletter?.description || 'Subscribe to our newsletter for the latest updates and insights.'}
             </p>
           </div>
           <NewsletterForm 
-            placeholder={data.newsletter?.placeholderText || 'Enter your email address'}
-            buttonText={data.newsletter?.buttonText || 'Subscribe'}
+            placeholder={pageData.newsletter?.placeholderText || 'Enter your email address'}
+            buttonText={pageData.newsletter?.buttonText || 'Subscribe'}
           />
         </div>
       </section>

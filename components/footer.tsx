@@ -8,7 +8,7 @@ import { urlFor } from "@/lib/sanity"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Footer() {
-  const { data, loading, error } = useSiteSettings()
+  const { data, isLoading: loading, error } = useSiteSettings()
 
   return (
     <footer className="border-t py-6 md:py-12">

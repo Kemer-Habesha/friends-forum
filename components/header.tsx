@@ -8,14 +8,20 @@ import { usePathname } from "next/navigation"
 import { useSiteSettings } from "@/hooks/useSiteSettings"
 import { urlFor } from "@/lib/sanity"
 import { Skeleton } from "@/components/ui/skeleton"
+import { prefetchPage } from "@/lib/prefetch"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
-  const { data, loading, error } = useSiteSettings()
+  const { data, isLoading: loading, error } = useSiteSettings()
 
   const isActive = (path: string) => {
     return pathname === path
+  }
+
+  const handleLinkHover = (pageKey: string) => {
+    // Prefetch data when user hovers over navigation link
+    prefetchPage(pageKey)
   }
 
   return (
@@ -135,8 +141,8 @@ export default function Header() {
               </Link>
             </>
           ) : data?.navigation?.menuItems ? (
-            // Dynamic navigation from Sanity
-            data.navigation.menuItems.map((item) => (
+            // Dynamic navigation from Sanity - sort by order
+            [...data.navigation.menuItems].sort((a, b) => a.order - b.order).map((item) => (
               <Link
                 key={item.link}
                 href={item.link}
@@ -145,6 +151,12 @@ export default function Header() {
                     ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                     : "text-muted-foreground hover:text-primary"
                 }`}
+                onMouseEnter={() => {
+                  // Map route to page key for prefetching
+                  const pageKey = item.link === '/' ? 'homePage' : 
+                    item.link.slice(1) + 'Page'
+                  handleLinkHover(pageKey)
+                }}
               >
                 {item.label}
               </Link>
@@ -159,6 +171,7 @@ export default function Header() {
                     ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                     : "text-muted-foreground hover:text-primary"
                 }`}
+                onMouseEnter={() => handleLinkHover('homePage')}
               >
                 Home
               </Link>
@@ -169,6 +182,7 @@ export default function Header() {
                     ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                     : "text-muted-foreground hover:text-primary"
                 }`}
+                onMouseEnter={() => handleLinkHover('aboutPage')}
               >
                 About
               </Link>
@@ -179,6 +193,7 @@ export default function Header() {
                     ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                     : "text-muted-foreground hover:text-primary"
                 }`}
+                onMouseEnter={() => handleLinkHover('eventsPage')}
               >
                 Events
               </Link>
@@ -189,6 +204,7 @@ export default function Header() {
                     ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                     : "text-muted-foreground hover:text-primary"
                 }`}
+                onMouseEnter={() => handleLinkHover('resourcesPage')}
               >
                 Resources
               </Link>
@@ -199,6 +215,7 @@ export default function Header() {
                     ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                     : "text-muted-foreground hover:text-primary"
                 }`}
+                onMouseEnter={() => handleLinkHover('forumPage')}
               >
                 Forum
               </Link>
@@ -209,6 +226,7 @@ export default function Header() {
                     ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                     : "text-muted-foreground hover:text-primary"
                 }`}
+                onMouseEnter={() => handleLinkHover('contactPage')}
               >
                 Contact
               </Link>
@@ -256,6 +274,7 @@ export default function Header() {
                       isActive("/") ? "text-primary font-bold" : "text-muted-foreground hover:text-primary"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
+                    onMouseEnter={() => handleLinkHover('homePage')}
                   >
                     {isActive("/") && <span className="inline-block w-1 h-1 bg-primary rounded-full mr-2"></span>}
                     Home
@@ -266,6 +285,7 @@ export default function Header() {
                       isActive("/about") ? "text-primary font-bold" : "text-muted-foreground hover:text-primary"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
+                    onMouseEnter={() => handleLinkHover('aboutPage')}
                   >
                     {isActive("/about") && <span className="inline-block w-1 h-1 bg-primary rounded-full mr-2"></span>}
                     About
@@ -276,6 +296,7 @@ export default function Header() {
                       isActive("/events") ? "text-primary font-bold" : "text-muted-foreground hover:text-primary"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
+                    onMouseEnter={() => handleLinkHover('eventsPage')}
                   >
                     {isActive("/events") && <span className="inline-block w-1 h-1 bg-primary rounded-full mr-2"></span>}
                     Events
@@ -286,6 +307,7 @@ export default function Header() {
                       isActive("/resources") ? "text-primary font-bold" : "text-muted-foreground hover:text-primary"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
+                    onMouseEnter={() => handleLinkHover('resourcesPage')}
                   >
                     {isActive("/resources") && <span className="inline-block w-1 h-1 bg-primary rounded-full mr-2"></span>}
                     Resources
@@ -296,6 +318,7 @@ export default function Header() {
                       isActive("/forum") ? "text-primary font-bold" : "text-muted-foreground hover:text-primary"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
+                    onMouseEnter={() => handleLinkHover('forumPage')}
                   >
                     {isActive("/forum") && <span className="inline-block w-1 h-1 bg-primary rounded-full mr-2"></span>}
                     Forum
@@ -306,6 +329,7 @@ export default function Header() {
                       isActive("/contact") ? "text-primary font-bold" : "text-muted-foreground hover:text-primary"
                     }`}
                     onClick={() => setIsMenuOpen(false)}
+                    onMouseEnter={() => handleLinkHover('contactPage')}
                   >
                     {isActive("/contact") && <span className="inline-block w-1 h-1 bg-primary rounded-full mr-2"></span>}
                     Contact

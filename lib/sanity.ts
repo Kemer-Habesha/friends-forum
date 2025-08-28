@@ -49,11 +49,6 @@ export const cachedClient = createClient({
 export const enhancedCachedClient = {
   ...cachedClient,
   async fetch<T>(query: string, params?: any): Promise<T> {
-    // In development, bypass cache completely for immediate updates
-    if (process.env.NODE_ENV === 'development') {
-      return await cachedClient.fetch<T>(query, params)
-    }
-    
     const cacheKey = `${query}-${JSON.stringify(params || {})}`
     
     // Check memory cache first

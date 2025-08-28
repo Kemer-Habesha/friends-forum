@@ -7,8 +7,8 @@ import { useAuth } from "@/contexts/auth-context"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { urlFor } from "@/lib/sanity"
-import { enhancedCachedClient, eventsPageQuery } from "@/lib/sanity"
-import { useEffect } from "react"
+import { eventsPageQuery } from "@/lib/sanity"
+import { useSanityQuery, queryKeys } from "@/hooks/useSanityQuery"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // Icon mapping for objectives
@@ -24,28 +24,13 @@ const iconMap: Record<string, any> = {
 export default function EventsPage() {
   const { openSignupModal } = useAuth()
   const router = useRouter()
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [showAllEvents, setShowAllEvents] = useState(false)
+  const { data, isLoading, error } = useSanityQuery(
+    queryKeys.eventsPage,
+    eventsPageQuery
+  )
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        const result = await enhancedCachedClient.fetch(eventsPageQuery)
-        setData(result)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch data')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  if (loading) {
+  if (isLoading) {
     return <EventsPageSkeleton />
   }
 
@@ -57,6 +42,9 @@ export default function EventsPage() {
       </div>
     )
   }
+
+  // Type assertion to fix TypeScript errors
+  const pageData = data as any
 
   const handleButtonClick = (button: any) => {
     if (button.action === 'signup') {
@@ -96,7 +84,7 @@ export default function EventsPage() {
         <div className="container relative z-10">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <h1 className="text-4xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-up">
-              {data.hero.title.split('').map((letter: string, index: number) => (
+              {pageData.hero.title.split('').map((letter: string, index: number) => (
                 <span
                   key={index}
                   className="inline-block transition-all duration-300 hover:scale-125 hover:rotate-12 hover:text-primary animate-bounce-in"
@@ -109,7 +97,7 @@ export default function EventsPage() {
               ))}
             </h1>
             <p className="text-xl text-muted-foreground transition-all duration-500 hover:text-foreground hover:scale-105 animate-fade-in-up delay-300">
-              {data.hero.subtitle}
+              {pageData.hero.subtitle}
             </p>
           </div>
         </div>
@@ -118,18 +106,18 @@ export default function EventsPage() {
       <section className="container py-12 md:py-24">
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-slide-in-bottom delay-400">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-left">{data.upcomingEvents.title}</h2>
-            {data.upcomingEvents?.events && data.upcomingEvents.events.length > 0 && (
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-left">{pageData.upcomingEvents.title}</h2>
+            {pageData.upcomingEvents?.events && pageData.upcomingEvents.events.length > 0 && (
               <div className="text-sm text-muted-foreground">
-                Showing {showAllEvents ? data.upcomingEvents.events.length : Math.min(9, data.upcomingEvents.events.length)} of {data.upcomingEvents.events.length} events
+                Showing {showAllEvents ? pageData.upcomingEvents.events.length : Math.min(9, pageData.upcomingEvents.events.length)} of {pageData.upcomingEvents.events.length} events
               </div>
             )}
           </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {(showAllEvents 
-                ? data.upcomingEvents?.events 
-                : data.upcomingEvents?.events?.slice(0, 9)
+                ? pageData.upcomingEvents?.events 
+                : pageData.upcomingEvents?.events?.slice(0, 9)
               )?.map((event: any, index: number) => (
                 <div key={index} className={`group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-500 hover:scale-110 hover:rotate-1 hover:shadow-2xl hover:shadow-primary/20 hover:border-primary/50 hover:-translate-y-2 animate-bounce-in delay-${600 + (index * 150)}`}>
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
@@ -170,7 +158,7 @@ export default function EventsPage() {
               ))}
             </div>
 
-          {(!data.upcomingEvents?.events || data.upcomingEvents.events.length === 0) && (
+          {(!pageData.upcomingEvents?.events || pageData.upcomingEvents.events.length === 0) && (
             <div className="text-center py-12">
               <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-bold mb-2">No Upcoming Events</h3>
@@ -180,7 +168,7 @@ export default function EventsPage() {
             </div>
           )}
 
-          {data.upcomingEvents?.events && data.upcomingEvents.events.length >= 10 && (
+          {pageData.upcomingEvents?.events && pageData.upcomingEvents.events.length >= 10 && (
             <div className="flex justify-center">
               <Button
                 variant="outline"
@@ -203,13 +191,13 @@ export default function EventsPage() {
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="text-center mb-12 animate-fade-in-scale delay-1000">
-            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-500 hover:text-primary hover:scale-110 animate-slide-in-bottom">{data.pastEvents.title}</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4 transition-all duration-500 hover:text-primary hover:scale-110 animate-slide-in-bottom">{pageData.pastEvents.title}</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto transition-all duration-500 hover:text-foreground hover:scale-105 animate-fade-in-up delay-200">
-              {data.pastEvents.subtitle}
+              {pageData.pastEvents.subtitle}
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2">
-            {data.pastEvents?.events?.map((event: any, index: number) => (
+            {pageData.pastEvents?.events?.map((event: any, index: number) => (
               <div key={index} className={`group bg-background rounded-lg overflow-hidden transition-all duration-700 hover:scale-105 hover:rotate-1 hover:shadow-2xl hover:shadow-primary/25 hover:-translate-y-4 animate-fade-in-${index % 2 === 0 ? 'left' : 'right'} delay-${1200 + (index * 200)}`}>
                 <div className="relative h-48 overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 z-10" />
@@ -267,7 +255,7 @@ export default function EventsPage() {
               </div>
             ))}
           </div>
-          {(!data.pastEvents?.events || data.pastEvents.events.length === 0) && (
+          {(!pageData.pastEvents?.events || pageData.pastEvents.events.length === 0) && (
             <div className="text-center py-12">
               <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-xl font-bold mb-2">No Past Events</h3>
@@ -276,7 +264,7 @@ export default function EventsPage() {
               </p>
             </div>
           )}
-          {data.pastEvents?.events && data.pastEvents.events.length >= 10 && (
+          {pageData.pastEvents?.events && pageData.pastEvents.events.length >= 10 && (
             <div className="flex justify-center mt-8">
               <Button
                 variant="outline"
@@ -296,21 +284,21 @@ export default function EventsPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 animate-fade-in-scale delay-1600" />
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center relative z-10">
           <div className="space-y-4 animate-slide-in-bottom delay-1600">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{data.hostEvent.title}</h2>
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1">{pageData.hostEvent.title}</h2>
             <p className="text-muted-foreground transition-all duration-500 hover:text-foreground hover:scale-105">
-              {data.hostEvent.description}
+              {pageData.hostEvent.description}
             </p>
             <div className="pt-4">
-              <Button className="transition-all duration-700 hover:scale-125 hover:rotate-3 hover:shadow-2xl hover:shadow-primary/30 animate-bounce-in delay-1800" onClick={() => handleButtonClick(data.hostEvent.ctaButton)}>
-                {data.hostEvent.ctaButton.text}
+              <Button className="transition-all duration-700 hover:scale-125 hover:rotate-3 hover:shadow-2xl hover:shadow-primary/30 animate-bounce-in delay-1800" onClick={() => handleButtonClick(pageData.hostEvent.ctaButton)}>
+                {pageData.hostEvent.ctaButton.text}
               </Button>
             </div>
           </div>
           <div className="relative h-[300px] rounded-lg overflow-hidden transition-all duration-700 hover:scale-110 hover:rotate-2 hover:shadow-2xl hover:shadow-primary/25 animate-fade-in-scale delay-1600 group">
             <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 z-10" />
-            {data.hostEvent.image ? (
+            {pageData.hostEvent.image ? (
               <Image
-                src={urlFor(data.hostEvent.image).url()}
+                src={urlFor(pageData.hostEvent.image).url()}
                 alt="Event Collaboration"
                 fill
                 className="object-cover transition-all duration-700 group-hover:scale-125 group-hover:rotate-3"
