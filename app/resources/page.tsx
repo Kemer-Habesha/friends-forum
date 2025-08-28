@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import {  FileText, Download, BookOpen, Filter, Youtube } from "lucide-react"
@@ -34,25 +35,51 @@ const resources = [
     type: "Research Paper"
   },
 ]
-// Server-side data fetching
-async function getResourcesPageData() {
-  try {
-    const data = await enhancedCachedClient.fetch<any>(resourcesPageQuery)
-    return data
-  } catch (error) {
-    console.error('Failed to fetch resources page data:', error)
-    return null
+
+export default function ResourcesPage() {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Client-side data fetching
+  useEffect(() => {
+    async function getResourcesPageData() {
+      try {
+        setLoading(true)
+        const result = await enhancedCachedClient.fetch<any>(resourcesPageQuery)
+        setData(result)
+      } catch (error) {
+        console.error('Failed to fetch resources page data:', error)
+        setError('Failed to load page content')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    getResourcesPageData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="container py-12 text-center">
+        <div className="animate-pulse space-y-4">
+          <div className="h-12 bg-muted rounded-lg w-3/4 mx-auto"></div>
+          <div className="h-6 bg-muted rounded-lg w-1/2 mx-auto"></div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-12">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 bg-muted rounded-lg"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   }
-}
 
-export default async function ResourcesPage() {
-  const data = await getResourcesPageData()
-
-  if (!data) {
+  if (error || !data) {
     return (
       <div className="container py-12 text-center">
         <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Page</h1>
-        <p className="text-muted-foreground">Failed to load page content. Please try again later.</p>
+        <p className="text-muted-foreground">{error || 'Failed to load page content. Please try again later.'}</p>
       </div>
     )
   }
