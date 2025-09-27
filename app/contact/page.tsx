@@ -21,6 +21,7 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const { data, isLoading, error } = useSanityQuery(
     queryKeys.contactPage,
@@ -51,16 +52,28 @@ export default function ContactPage() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setFormError(null)
 
-    // Simulate form submission
-    setTimeout(() => {
-      console.log("Form submitted:", formData)
-      setIsSubmitting(false)
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit form')
+      }
+
       setIsSuccess(true)
-
+      
       // Reset form after success
       setFormData({
         firstName: "",
@@ -70,11 +83,15 @@ export default function ContactPage() {
         message: "",
       })
 
-      // Reset success message after 3 seconds
+      // Reset success message after 5 seconds
       setTimeout(() => {
         setIsSuccess(false)
-      }, 3000)
-    }, 1000)
+      }, 5000)
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Failed to submit form')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // Icon mapping for contact methods
@@ -109,9 +126,16 @@ export default function ContactPage() {
               </p>
             </div>
             {isSuccess && (
-              <div className="bg-green-50 border border-green-200 text-green-800 rounded-md p-4">
-                <p className="font-medium">{pageData.contactForm?.successMessage?.title || 'Thank you for your message!'}</p>
+              <div className="bg-green-100 border border-green-400 text-green-700 rounded-md p-4">
+                <p className="font-medium">🎉 {pageData.contactForm?.successMessage?.title || 'Thank you for your message!'}</p>
                 <p className="text-sm">{pageData.contactForm?.successMessage?.description || 'We\'ll get back to you as soon as possible.'}</p>
+              </div>
+            )}
+            
+            {formError && (
+              <div className="bg-red-100 border border-red-400 text-red-700 rounded-md p-4">
+                <p className="font-medium">❌ Error</p>
+                <p className="text-sm">{formError}</p>
               </div>
             )}
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -194,7 +218,11 @@ export default function ContactPage() {
                   required={pageData.contactForm?.formFields?.message?.required ?? true}
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                className="w-full transition-all duration-200 ease-in-out hover:scale-105" 
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (pageData.contactForm?.submitButton?.loadingText || "Sending...") : (pageData.contactForm?.submitButton?.text || "Send Message")}
               </Button>
             </form>

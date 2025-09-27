@@ -244,6 +244,7 @@ export default function Home() {
           <NewsletterForm 
             placeholder={pageData.newsletter?.placeholderText || 'Enter your email address'}
             buttonText={pageData.newsletter?.buttonText || 'Subscribe'}
+            source="homepage"
           />
         </div>
       </section>
