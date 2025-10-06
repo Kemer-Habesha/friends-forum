@@ -31,12 +31,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (message.length < 10) {
-      return NextResponse.json(
-        { error: 'Message must be at least 10 characters long' },
-        { status: 400 }
-      )
-    }
 
     // Get client information
     const userAgent = request.headers.get('user-agent') || 'Unknown'
