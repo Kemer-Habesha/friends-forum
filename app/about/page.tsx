@@ -209,15 +209,10 @@ export default function AboutPage() {
           <p className="text-muted-foreground transition-all duration-500 hover:text-foreground hover:scale-105 animate-fade-in-up delay-2600">
             {pageData.cta.description}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-in-scale delay-2800">
+          <div className="flex justify-center pt-4 animate-fade-in-scale delay-2800">
             <Button size="lg" className="transition-all duration-700 hover:scale-125 hover:rotate-3 hover:shadow-2xl hover:shadow-primary/30" asChild>
               <a href={pageData.cta.primaryButton.action === 'signup' ? '#signup' : pageData.cta.primaryButton.targetPage || '/'}>
                 {pageData.cta.primaryButton.text}
-              </a>
-            </Button>
-            <Button size="lg" variant="outline" className="transition-all duration-700 hover:scale-125 hover:-rotate-3 hover:shadow-2xl hover:shadow-secondary/30" asChild>
-              <a href={pageData.cta.secondaryButton.action === 'signup' ? '#signup' : pageData.cta.secondaryButton.targetPage || '/'}>
-                {pageData.cta.secondaryButton.text}
               </a>
             </Button>
           </div>
@@ -312,8 +307,7 @@ function AboutPageSkeleton() {
         <div className="max-w-3xl mx-auto text-center space-y-6">
           <Skeleton className="h-8 w-48 mx-auto" />
           <Skeleton className="h-6 w-full mx-auto" />
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Skeleton className="h-12 w-32" />
+          <div className="flex justify-center pt-4">
             <Skeleton className="h-12 w-32" />
           </div>
         </div>
