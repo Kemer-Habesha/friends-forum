@@ -33,8 +33,22 @@ export const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: false, // Disable CDN to see changes immediately
+  useCdn: false,
 })
+
+/**
+ * Server-side fetch with Next.js ISR caching.
+ * Use this in server components instead of useSanityQuery.
+ */
+export async function sanityFetch<T>(
+  query: string,
+  params?: Record<string, unknown>,
+  revalidate: number | false = 60
+): Promise<T> {
+  return client.fetch<T>(query, params ?? {}, {
+    next: { revalidate },
+  })
+}
 
 // Cached client for better performance
 export const cachedClient = createClient({
@@ -328,6 +342,7 @@ export const forumPageQuery = `*[_type == "forumPage"][0] {
       },
       featured,
       category,
+      link,
       status
     }
   },
