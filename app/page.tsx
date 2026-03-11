@@ -1,8 +1,9 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Calendar, MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
+import { MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
 import NewsletterForm from "@/components/ui/newsletter-form"
+import HomeEvents from "@/components/ui/home-events"
 import { urlFor, sanityFetch, homePageQuery } from "@/lib/sanity"
 import type { Metadata } from "next"
 
@@ -151,48 +152,14 @@ export default async function Home() {
               {pageData.events?.subtitle || 'Join our virtual and in-person meetings to connect with researchers, technical experts, and professionals from across the Nile Basin region.'}
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {pageData.events?.events?.map((event: any, index: number) => (
-              <div key={index}>
-                <div className="group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary/50">
-                  <div className="flex items-center gap-4 mb-4">
-                    <Calendar className="h-5 w-5 text-primary transition-all duration-300 group-hover:scale-110" />
-                    <span className="text-sm font-medium transition-all duration-300 group-hover:text-primary">
-                      {formatDate(event.date)}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 transition-all duration-300 group-hover:text-primary">{event.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 transition-all duration-300 group-hover:text-foreground">
-                    {event.description}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground">
-                    <MapPin className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
-                    <span>{event.location || 'Location TBD'}</span>
-                  </div>
-                  {event.registrationLink && (
-                    <div className="mt-4">
-                      <Button
-                        variant="outline"
-                        className="w-full transition-all duration-300 hover:scale-105 hover:shadow-md"
-                        asChild
-                      >
-                        <a href={event.registrationLink} target="_blank" rel="noopener noreferrer">
-                          Register Now
-                        </a>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )) || (
-              <div className="col-span-full text-center py-8">
-                <p className="text-muted-foreground">No events available at the moment.</p>
-              </div>
-            )}
-          </div>
+          <HomeEvents events={pageData.events?.events} />
           <div className="flex justify-center mt-8">
-            <Link href="/events" className="inline-flex items-center gap-2 text-primary hover:underline transition-all duration-300 hover:scale-105 hover:text-primary/80">
-              View all events <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-2 text-primary hover:underline transition-all duration-300 hover:scale-105 hover:text-primary/80"
+            >
+              View all events{" "}
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         </div>
