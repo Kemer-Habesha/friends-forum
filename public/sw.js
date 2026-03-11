@@ -1,25 +1,23 @@
-const CACHE_NAME = 'friends-forum-v1'
-const STATIC_CACHE = 'friends-forum-static-v1'
-const DYNAMIC_CACHE = 'friends-forum-dynamic-v1'
+const CACHE_NAME = 'friends-forum-v2'
+const STATIC_CACHE = 'friends-forum-static-v2'
+const DYNAMIC_CACHE = 'friends-forum-dynamic-v2'
 
-// Files to cache immediately
 const STATIC_FILES = [
   '/',
   '/offline',
-  '/manifest.json',
+  '/site.webmanifest',
   '/favicon.ico'
 ]
 
-// Install event - cache static files
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        return cache.addAll(STATIC_FILES)
+        return Promise.allSettled(
+          STATIC_FILES.map((url) => cache.add(url).catch(() => {}))
+        )
       })
-      .then(() => {
-        return self.skipWaiting()
-      })
+      .then(() => self.skipWaiting())
   )
 })
 
@@ -114,13 +112,9 @@ self.addEventListener('fetch', (event) => {
   }
 })
 
-// Background sync for offline actions
 self.addEventListener('sync', (event) => {
   if (event.tag === 'background-sync') {
-    event.waitUntil(
-              // Handle background sync tasks
-        // Background sync functionality can be added here
-    )
+    event.waitUntil(Promise.resolve())
   }
 })
 

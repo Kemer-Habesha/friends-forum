@@ -1,34 +1,48 @@
-"use client"
-
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Calendar, MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
+import { MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
 import NewsletterForm from "@/components/ui/newsletter-form"
-import { urlFor } from "@/lib/sanity"
-import { homePageQuery } from "@/lib/sanity"
-import { useSanityQuery, queryKeys } from "@/hooks/useSanityQuery"
-import { Skeleton } from "@/components/ui/skeleton"
+import HomeEvents from "@/components/ui/home-events"
+import { urlFor, sanityFetch, homePageQuery } from "@/lib/sanity"
+import type { Metadata } from "next"
 
-
-// Icon mapping for focus areas
 const iconMap: Record<string, any> = {
   BookOpen,
   Users,
   MapPin,
 }
 
-export default function Home() {
-  const { data, isLoading, error } = useSanityQuery(
-    queryKeys.homePage,
-    homePageQuery
-  )
+export async function generateMetadata(): Promise<Metadata> {
+  const data = await sanityFetch<any>(homePageQuery)
 
-  if (isLoading) {
-    return <HomePageSkeleton />
+  if (!data?.seo) return {}
+
+  const ogImage = data.seo.ogImage ? urlFor(data.seo.ogImage).width(1200).height(630).url() : undefined
+
+  return {
+    title: data.seo.metaTitle ?? data.title,
+    description: data.seo.metaDescription,
+    openGraph: {
+      title: data.seo.metaTitle ?? data.title,
+      description: data.seo.metaDescription,
+      ...(ogImage && { images: [{ url: ogImage, width: 1200, height: 630 }] }),
+    },
   }
+}
 
-  if (error || !data) {
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
+export default async function Home() {
+  const pageData = await sanityFetch<any>(homePageQuery)
+
+  if (!pageData) {
     return (
       <div className="container py-12 text-center">
         <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Page</h1>
@@ -37,21 +51,9 @@ export default function Home() {
     )
   }
 
-  // Type assertion to fix TypeScript errors
-  const pageData = data as any
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
-
   return (
     <>
-      {/* Hero Section - Immediate animations on page load */}
+      {/* Hero Section */}
       <section className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-primary/20 z-10 animate-fade-in-up" />
         <div className="relative h-[500px] w-full animate-fade-in-scale delay-200">
@@ -98,7 +100,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Mission & Focus Section - Scroll triggered */}
+      {/* Mission & Focus Section */}
       <section className="container py-12 md:py-24">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-4">
@@ -141,7 +143,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Events Section - Scroll triggered */}
+      {/* Events Section */}
       <section className="bg-muted py-12 md:py-24">
         <div className="container">
           <div className="flex flex-col items-center justify-center text-center mb-12">
@@ -150,54 +152,20 @@ export default function Home() {
               {pageData.events?.subtitle || 'Join our virtual and in-person meetings to connect with researchers, technical experts, and professionals from across the Nile Basin region.'}
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {pageData.events?.events?.map((event: any, index: number) => (
-              <div key={index}>
-                <div className="group relative overflow-hidden rounded-lg border bg-background p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-primary/50">
-                  <div className="flex items-center gap-4 mb-4">
-                    <Calendar className="h-5 w-5 text-primary transition-all duration-300 group-hover:scale-110" />
-                    <span className="text-sm font-medium transition-all duration-300 group-hover:text-primary">
-                      {formatDate(event.date)}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold mb-2 transition-all duration-300 group-hover:text-primary">{event.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4 transition-all duration-300 group-hover:text-foreground">
-                    {event.description}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-300 group-hover:text-foreground">
-                    <MapPin className="h-4 w-4 transition-all duration-300 group-hover:scale-110" />
-                    <span>{event.location || 'Location TBD'}</span>
-                  </div>
-                  {event.registrationLink && (
-                    <div className="mt-4">
-                      <Button
-                        variant="outline"
-                        className="w-full transition-all duration-300 hover:scale-105 hover:shadow-md"
-                        asChild
-                      >
-                        <a href={event.registrationLink} target="_blank" rel="noopener noreferrer">
-                          Register Now
-                        </a>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )) || (
-              <div className="col-span-full text-center py-8">
-                <p className="text-muted-foreground">No events available at the moment.</p>
-              </div>
-            )}
-          </div>
+          <HomeEvents events={pageData.events?.events} />
           <div className="flex justify-center mt-8">
-            <Link href="/events" className="inline-flex items-center gap-2 text-primary hover:underline transition-all duration-300 hover:scale-105 hover:text-primary/80">
-              View all events <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-2 text-primary hover:underline transition-all duration-300 hover:scale-105 hover:text-primary/80"
+            >
+              View all events{" "}
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Forum Section - Scroll triggered */}
+      {/* Forum Section */}
       <section className="container py-12 md:py-24">
         <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
                     <div className="relative h-[400px] rounded-lg overflow-hidden transition-all duration-300 hover:scale-105">
@@ -232,7 +200,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Newsletter Section - Scroll triggered */}
+      {/* Newsletter Section */}
       <section className="bg-primary text-primary-foreground py-12 md:py-24">
         <div className="container">
           <div className="flex flex-col items-center justify-center text-center mb-8">
@@ -251,110 +219,3 @@ export default function Home() {
     </>
   )
 }
-
-function HomePageSkeleton() {
-  return (
-    <div className="space-y-8">
-      {/* Hero Section Skeleton */}
-      <section className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-primary/20 z-10" />
-        <div className="relative h-[500px] w-full bg-muted">
-          <div className="absolute inset-0 flex items-center z-20">
-            <div className="container">
-              <div className="max-w-2xl space-y-4">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-white drop-shadow-md">
-                  <Skeleton className="h-16 w-3/4" />
-                </h1>
-                <div className="text-xl text-white/90 drop-shadow">
-                  <Skeleton className="h-6 w-3/4" />
-                </div>
-                <div className="flex justify-start pt-4">
-                  <Skeleton className="h-12 w-32" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Mission & Focus Section Skeleton */}
-      <section className="container py-12 md:py-24">
-        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-6 w-full" />
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-start gap-4">
-                  <Skeleton className="h-9 w-9 rounded-full" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-4 w-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Events Section Skeleton */}
-      <section className="bg-muted py-12 md:py-24">
-        <div className="container">
-          <div className="flex flex-col items-center justify-center text-center mb-12">
-            <Skeleton className="h-8 w-48 mb-4" />
-            <Skeleton className="h-6 w-3xl" />
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="group relative overflow-hidden rounded-lg border bg-background p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <Skeleton className="h-5 w-5" />
-                  <Skeleton className="h-4 w-24" />
-                </div>
-                <Skeleton className="h-6 w-full mb-2" />
-                <Skeleton className="h-16 w-full mb-4" />
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-4 w-20" />
-                </div>
-                <Skeleton className="h-10 w-full mt-4" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Forum Section Skeleton */}
-      <section className="container py-12 md:py-24">
-        <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-          <Skeleton className="h-[400px] w-full rounded-lg" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-10 w-32" />
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Section Skeleton */}
-      <section className="bg-primary text-primary-foreground py-12 md:py-24">
-        <div className="container">
-          <div className="flex flex-col items-center justify-center text-center mb-8">
-            <Skeleton className="h-8 w-48 mb-4" />
-            <Skeleton className="h-6 w-2xl" />
-          </div>
-          <div className="max-w-md mx-auto">
-            <Skeleton className="h-12 w-full" />
-          </div>
-        </div>
-      </section>
-    </div>
-  )
-}
-
