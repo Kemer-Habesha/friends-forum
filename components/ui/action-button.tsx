@@ -1,6 +1,5 @@
 "use client"
 
-import { useAuth } from "@/contexts/auth-context"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
@@ -21,15 +20,13 @@ export default function ActionButton({
   size = "default",
   className,
 }: ActionButtonProps) {
-  const { openSignupModal } = useAuth()
   const router = useRouter()
 
   const handleClick = () => {
-    if (action === "signup") {
-      openSignupModal()
-    } else if (action === "navigate" && targetPage) {
+    if (action === "navigate" && targetPage) {
       router.push(targetPage)
-    } else if (action === "contact") {
+    } else if (action === "contact" || action === "signup") {
+      // Treat legacy \"signup\" action as contact now that auth is removed
       router.push("/contact")
     }
   }

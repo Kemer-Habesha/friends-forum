@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Calendar, MapPin, Clock } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
 
 interface Event {
   title: string
@@ -42,7 +41,6 @@ export default function UpcomingEvents({
   events: Event[] | undefined
 }) {
   const [showAll, setShowAll] = useState(false)
-  const { openSignupModal } = useAuth()
 
   const visibleEvents = showAll ? events : events?.slice(0, 9)
 
@@ -100,29 +98,19 @@ export default function UpcomingEvents({
 
               {event.registrationRequired && (
                 <div className="mt-4">
-                  {event.registrationLink ? (
-                    <Button
-                      variant="outline"
-                      className="w-full transition-all duration-500 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary hover:text-primary-foreground transform"
-                      asChild
-                    >
-                      <a
-                        href={event.registrationLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Register Now
-                      </a>
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full transition-all duration-500 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary hover:text-primary-foreground transform"
-                      onClick={() => openSignupModal()}
+                  <Button
+                    variant="outline"
+                    className="w-full transition-all duration-500 hover:scale-110 hover:shadow-lg hover:shadow-primary/25 hover:bg-primary hover:text-primary-foreground transform"
+                    asChild
+                  >
+                    <a
+                      href={event.registrationLink || "/contact"}
+                      target={event.registrationLink ? "_blank" : undefined}
+                      rel={event.registrationLink ? "noopener noreferrer" : undefined}
                     >
                       Register Now
-                    </Button>
-                  )}
+                    </a>
+                  </Button>
                 </div>
               )}
             </div>
