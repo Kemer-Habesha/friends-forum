@@ -73,7 +73,7 @@ export default async function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Image
-                src={logoUrl || "/placeholder-logo.png"}
+                src={logoUrl || "/favicon.png"}
                 alt={`${siteTitle} Logo`}
                 width={40}
                 height={40}

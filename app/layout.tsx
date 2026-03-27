@@ -22,20 +22,20 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://friends-forum.vercel.app'),
+  metadataBase: new URL("https://friendsforum.org"),
   alternates: {
-    canonical: '/',
+    canonical: "/",
   },
   openGraph: {
     title: "FRIENDS Forum - Nile Basin Research & Collaboration",
     description: "An international platform for research, knowledge exchange, and development support in the Nile Basin region.",
-    url: 'https://friends-forum.vercel.app',
-    siteName: 'FRIENDS Forum',
-    locale: 'en_US',
-    type: 'website',
+    url: "https://friendsforum.org",
+    siteName: "FRIENDS Forum",
+    locale: "en_US",
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
     title: "FRIENDS Forum - Nile Basin Research & Collaboration",
     description: "An international platform for research, knowledge exchange, and development support in the Nile Basin region.",
   },
@@ -51,8 +51,12 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.png", rel: "shortcut icon" },
+    ],
+    apple: [{ url: "/favicon.png", sizes: "180x180", type: "image/png" }],
   },
   manifest: "/site.webmanifest",
 }
