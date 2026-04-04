@@ -59,10 +59,13 @@
 }
 
 @layer components {
-  .letter-hover:hover {
-    background-image: var(--hover-bg);
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
+  /* Avoid sticky / jittery hover on touch; keep effect for mouse / trackpad */
+  @media (hover: hover) and (pointer: fine) {
+    .letter-hover:hover {
+      background-image: var(--hover-bg);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+    }
   }
 }
 

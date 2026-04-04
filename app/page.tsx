@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button"
 import { MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
 import NewsletterForm from "@/components/ui/newsletter-form"
 import HomeEvents from "@/components/ui/home-events"
+import { HeroTitle } from "@/components/hero-title"
+import { HomeHeroSection } from "@/components/home-hero-section"
+import type { HeroSlide } from "@/components/hero-slideshow"
 import { urlFor, sanityFetch, homePageQuery } from "@/lib/sanity"
 import type { Metadata } from "next"
 
@@ -39,6 +42,49 @@ function formatDate(dateString: string) {
   })
 }
 
+const DEFAULT_HERO_W = 1920
+const DEFAULT_HERO_H = 1080
+
+function heroDimensionsFromSanity(img: {
+  dimensions?: { width?: number; height?: number } | null
+} | null | undefined) {
+  const w = img?.dimensions?.width
+  const h = img?.dimensions?.height
+  if (typeof w === "number" && typeof h === "number" && w > 0 && h > 0) {
+    return { width: w, height: h }
+  }
+  return { width: DEFAULT_HERO_W, height: DEFAULT_HERO_H }
+}
+
+function heroSlidesFromSanity(hero: {
+  title?: string
+  backgroundImage?: unknown
+  backgroundImages?: unknown[] | null
+}): HeroSlide[] {
+  const alt = hero?.title?.trim() || "Hero"
+  const fromArray = (hero?.backgroundImages ?? []).filter(Boolean) as Array<{
+    dimensions?: { width?: number; height?: number }
+  }>
+  if (fromArray.length > 0) {
+    return fromArray.map((img) => ({
+      src: urlFor(img).url(),
+      alt,
+      ...heroDimensionsFromSanity(img),
+    }))
+  }
+  if (hero?.backgroundImage) {
+    const img = hero.backgroundImage as { dimensions?: { width?: number; height?: number } }
+    return [
+      {
+        src: urlFor(hero.backgroundImage).url(),
+        alt,
+        ...heroDimensionsFromSanity(img),
+      },
+    ]
+  }
+  return []
+}
+
 export default async function Home() {
   const pageData = await sanityFetch<any>(homePageQuery)
 
@@ -53,52 +99,30 @@ export default async function Home() {
 
   return (
     <>
-      {/* Hero Section */}
-      <section className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-primary/20 z-10 animate-fade-in-up" />
-        <div className="relative h-[500px] w-full animate-fade-in-scale delay-200">
-          <Image
-            src={urlFor(pageData.hero.backgroundImage).url()}
-            alt={pageData.hero.title}
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-        <div className="absolute inset-0 flex items-center z-20">
-          <div className="container">
-            <div className="max-w-2xl space-y-4">
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl text-white drop-shadow-md animate-fade-in-up delay-300">
-                {pageData.hero.title.split('').map((letter: string, index: number) => (
-                  <span
-                    key={index}
-                    className="inline-block transition-all duration-300 hover:scale-110 hover:rotate-3 hover:text-transparent hover:bg-clip-text letter-hover"
-                    style={{
-                      '--hover-bg': `linear-gradient(45deg, hsl(${35 + index * 15}, 60%, ${50 + index * 5}%), hsl(${35 + index * 15 + 20}, 70%, ${60 + index * 5}%))`,
-                    } as React.CSSProperties}
-                  >
-                    {letter === ' ' ? '\u00A0' : letter}
-                  </span>
-                ))}
-              </h1>
-              <p className="text-xl text-white/90 drop-shadow transition-all duration-300 animate-fade-in-up delay-400">
-                {pageData.hero.subtitle}
-              </p>
-              <div className="flex justify-start pt-4 animate-fade-in-up delay-500">
-                <Button 
-                  size="lg" 
-                  className="w-full sm:w-auto transition-all duration-300 hover:scale-110 hover:shadow-lg" 
-                  asChild
-                >
-                  <Link href={pageData.hero.primaryButton.action === 'signup' ? '#signup' : pageData.hero.primaryButton.targetPage || '/'}>
-                    {pageData.hero.primaryButton.text}
-                  </Link>
-                </Button>
-              </div>
+      {/* Hero height = image aspect ratio from Sanity metadata; single image layer, no blur fill */}
+      <HomeHeroSection slides={heroSlidesFromSanity(pageData.hero)}>
+        <div className="container w-full animate-fade-in-up pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-[max(0.125rem,env(safe-area-inset-top,0px))] sm:pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:pt-[max(0.25rem,env(safe-area-inset-top,0px))] md:pb-0 md:pt-0">
+          <div className="w-full max-w-2xl space-y-[clamp(0.375rem,1.8vw,1rem)] text-left sm:space-y-4">
+            <HeroTitle
+              title={pageData.hero.title}
+              className="text-[clamp(0.9375rem,0.32rem+3.4vw,3.75rem)] font-bold tracking-tight text-white drop-shadow-md break-words max-sm:[line-height:1.06]"
+            />
+            <p className="text-pretty text-[clamp(0.75rem,0.18rem+1.6vw,1.5rem)] leading-snug text-white/90 drop-shadow sm:leading-relaxed">
+              {pageData.hero.subtitle}
+            </p>
+            <div className="flex justify-start pt-[clamp(0.375rem,1.2vw,1rem)] sm:pt-4">
+              <Button
+                asChild
+                className="!h-[clamp(1.875rem,1.05rem+2vw,2.75rem)] min-h-0 touch-manipulation !px-[clamp(0.55rem,0.3rem+1.5vw,2rem)] !py-0 text-[clamp(0.6875rem,0.5rem+0.5vw,1rem)] transition-all duration-300 hover:scale-110 hover:shadow-lg sm:!h-11 sm:!px-8 sm:!py-2 sm:text-base"
+              >
+                <Link href={pageData.hero.primaryButton.action === 'signup' ? '#signup' : pageData.hero.primaryButton.targetPage || '/'}>
+                  {pageData.hero.primaryButton.text}
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
-      </section>
+      </HomeHeroSection>
 
       {/* Mission & Focus Section */}
       <section className="container py-12 md:py-24">

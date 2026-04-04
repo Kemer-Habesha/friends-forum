@@ -9,7 +9,18 @@ export async function preloadHomePageData() {
       hero {
         title,
         subtitle,
-        backgroundImage
+        backgroundImage {
+          asset,
+          crop,
+          hotspot,
+          "dimensions": asset->metadata.dimensions
+        },
+        backgroundImages[] {
+          asset,
+          crop,
+          hotspot,
+          "dimensions": asset->metadata.dimensions
+        }
       }
     }`)
     
@@ -169,6 +180,7 @@ export async function preloadCriticalImages() {
   try {
     const criticalImages = await cachedClient.fetch(`*[_type == "homePage"][0] {
       hero.backgroundImage,
+      hero.backgroundImages,
       forum.backgroundImage
     }`)
     

@@ -105,7 +105,18 @@ export const homePageQuery = `*[_type == "homePage"][0] {
   hero {
     title,
     subtitle,
-    backgroundImage,
+    backgroundImage {
+      asset,
+      crop,
+      hotspot,
+      "dimensions": asset->metadata.dimensions
+    },
+    backgroundImages[] {
+      asset,
+      crop,
+      hotspot,
+      "dimensions": asset->metadata.dimensions
+    },
     primaryButton
   },
   mission {
