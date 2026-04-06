@@ -53,6 +53,10 @@
   * {
     @apply border-border;
   }
+  /* Framer Motion useScroll (window) uses document.scrollingElement; static breaks offset math. */
+  html {
+    position: relative;
+  }
   body {
     @apply bg-background text-foreground;
   }

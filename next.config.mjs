@@ -3,6 +3,8 @@ const nextConfig = {
   // Enable experimental features for better performance
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    /** Inlines imported CSS into HTML in production (App Router), shortening the critical path vs a linked .css chunk. */
+    inlineCss: true,
   },
   
   // Image optimization

@@ -7,7 +7,11 @@ import QueryProvider from "@/contexts/query-provider"
 import { ServiceWorkerRegister } from "@/components/service-worker-register"
 import CacheStatus from "@/components/cache-status"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  adjustFontFallback: true,
+})
 
 export const metadata = {
   title: "FRIENDS Forum - Nile Basin Research & Collaboration",
