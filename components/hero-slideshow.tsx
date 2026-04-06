@@ -53,12 +53,41 @@ export function HeroSlideshow({
     }
   }, [count, controlledIndex, onIndexChange])
 
+  /**
+   * LCP: only the first hero image should compete for bandwidth on first paint. All slides were
+   * previously mounted at once (same viewport box), so non-priority images still loaded early.
+   * After idle (or single slide), mount the rest for smooth autoplay/crossfade.
+   */
+  const [mountAllSlideImages, setMountAllSlideImages] = useState(count <= 1)
+  useEffect(() => {
+    if (count <= 1) return
+    let cancelled = false
+    const done = () => {
+      if (!cancelled) setMountAllSlideImages(true)
+    }
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(done, { timeout: 2500 })
+      return () => {
+        cancelled = true
+        window.cancelIdleCallback(id)
+      }
+    }
+    const t = window.setTimeout(done, 200)
+    return () => {
+      cancelled = true
+      window.clearTimeout(t)
+    }
+  }, [count])
+
   if (count === 0) {
     return null
   }
 
   const active = slides[index]!
   const aspectStyle = { aspectRatio: `${active.width} / ${active.height}` }
+
+  const shouldRenderSlideImage = (i: number) =>
+    mountAllSlideImages || i === index || i === 0
 
   return (
     <div
@@ -67,6 +96,7 @@ export function HeroSlideshow({
     >
       {slides.map((slide, i) => {
         const isActive = i === index
+        const showImage = shouldRenderSlideImage(i)
         return (
           <div
             key={`${slide.src}-${i}`}
@@ -78,14 +108,18 @@ export function HeroSlideshow({
             }}
             aria-hidden={!isActive}
           >
-            <Image
-              src={slide.src}
-              alt={isActive ? slide.alt : ""}
-              fill
-              sizes="100vw"
-              className="object-cover object-center [transform:translateZ(0)]"
-              priority={i === 0}
-            />
+            {showImage ? (
+              <Image
+                src={slide.src}
+                alt={isActive ? slide.alt : ""}
+                fill
+                sizes="100vw"
+                className="object-cover object-center [transform:translateZ(0)]"
+                priority={i === 0 && index === 0}
+                loading={i === 0 && index === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 && index === 0 ? "high" : "low"}
+              />
+            ) : null}
           </div>
         )
       })}
