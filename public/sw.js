@@ -62,15 +62,23 @@ self.addEventListener('fetch', (event) => {
       caches.match(request)
         .then((response) => {
           if (response) {
-            // Return cached version and update in background
-            fetch(request).then((freshResponse) => {
-              caches.open(DYNAMIC_CACHE).then((cache) => {
-                cache.put(request, freshResponse.clone())
+            // Return cached version and update in background (never reject uncaught)
+            fetch(request)
+              .then((freshResponse) => {
+                if (!freshResponse || !freshResponse.ok) return
+                return caches.open(DYNAMIC_CACHE).then((cache) =>
+                  cache.put(request, freshResponse.clone())
+                )
               })
-            })
+              .catch(() => {})
             return response
           }
-          return fetch(request)
+          return fetch(request).catch(async () => {
+            const cached = await caches.match(request)
+            if (cached) return cached
+            const offline = await caches.match('/offline')
+            return offline || new Response('', { status: 503, statusText: 'Offline' })
+          })
         })
     )
   } else if (url.pathname.startsWith('/_next/') || url.pathname.includes('.')) {

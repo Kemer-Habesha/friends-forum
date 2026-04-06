@@ -100,7 +100,7 @@ export function HeroSlideshow({
         return (
           <div
             key={`${slide.src}-${i}`}
-            className="absolute inset-0 overflow-hidden transition-opacity duration-[1100ms] ease-in-out"
+            className="absolute inset-0 overflow-hidden transition-opacity duration-hero-crossfade ease-in-out"
             style={{
               opacity: isActive ? 1 : 0,
               zIndex: isActive ? 1 : 0,
