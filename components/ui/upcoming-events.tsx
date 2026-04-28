@@ -42,7 +42,16 @@ export default function UpcomingEvents({
 }) {
   const [showAll, setShowAll] = useState(false)
 
-  const visibleEvents = showAll ? events : events?.slice(0, 9)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const filteredEvents = (events || []).filter((event) => {
+    const eventEndDate = new Date(event.endDate || event.startDate)
+    eventEndDate.setHours(0, 0, 0, 0)
+    return eventEndDate >= today
+  })
+
+  const visibleEvents = showAll ? filteredEvents : filteredEvents.slice(0, 9)
 
   return (
     <div className="space-y-8">
@@ -50,10 +59,10 @@ export default function UpcomingEvents({
         <h2 className="text-3xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-left">
           {title}
         </h2>
-        {events && events.length > 0 && (
+        {filteredEvents.length > 0 && (
           <div className="text-sm text-muted-foreground">
-            Showing {showAll ? events.length : Math.min(9, events.length)} of{" "}
-            {events.length} events
+            Showing {showAll ? filteredEvents.length : Math.min(9, filteredEvents.length)} of{" "}
+            {filteredEvents.length} events
           </div>
         )}
       </div>
@@ -118,7 +127,7 @@ export default function UpcomingEvents({
         ))}
       </div>
 
-      {(!events || events.length === 0) && (
+      {filteredEvents.length === 0 && (
         <div className="text-center py-12">
           <Calendar className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-xl font-bold mb-2">No Upcoming Events</h3>
@@ -128,7 +137,7 @@ export default function UpcomingEvents({
         </div>
       )}
 
-      {events && events.length >= 10 && (
+      {filteredEvents.length >= 10 && (
         <div className="flex justify-center">
           <Button
             variant="outline"

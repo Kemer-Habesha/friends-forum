@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
+import { cn } from "@/lib/utils"
 
 export type HeroSlide = {
   src: string
@@ -18,12 +19,21 @@ export function HeroSlideshow({
   intervalMs = DEFAULT_INTERVAL_MS,
   index: controlledIndex,
   onIndexChange,
+  fill = false,
+  imageClassName,
+  sizes = "100vw",
 }: {
   slides: HeroSlide[]
   intervalMs?: number
   /** When set with `onIndexChange`, slideshow is controlled (e.g. for external dot indicators). */
   index?: number
   onIndexChange?: (index: number) => void
+  /** Fill the nearest positioned ancestor instead of sizing by the active slide's aspect ratio. */
+  fill?: boolean
+  /** Extra classes applied to each <Image>; used for effects like hover zoom or desaturation. */
+  imageClassName?: string
+  /** Passed through to next/image sizes prop. */
+  sizes?: string
 }) {
   const [internalIndex, setInternalIndex] = useState(0)
   const controlled =
@@ -89,11 +99,12 @@ export function HeroSlideshow({
   const shouldRenderSlideImage = (i: number) =>
     mountAllSlideImages || i === index || i === 0
 
+  const rootClass = fill
+    ? "absolute inset-0 overflow-hidden"
+    : "relative w-full overflow-hidden bg-black"
+
   return (
-    <div
-      className="relative w-full overflow-hidden bg-black"
-      style={aspectStyle}
-    >
+    <div className={rootClass} style={fill ? undefined : aspectStyle}>
       {slides.map((slide, i) => {
         const isActive = i === index
         const showImage = shouldRenderSlideImage(i)
@@ -113,8 +124,11 @@ export function HeroSlideshow({
                 src={slide.src}
                 alt={isActive ? slide.alt : ""}
                 fill
-                sizes="100vw"
-                className="object-cover object-center [transform:translateZ(0)]"
+                sizes={sizes}
+                className={cn(
+                  "object-cover object-center [transform:translateZ(0)]",
+                  imageClassName
+                )}
                 priority={i === 0 && index === 0}
                 loading={i === 0 && index === 0 ? "eager" : "lazy"}
                 fetchPriority={i === 0 && index === 0 ? "high" : "low"}

@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button"
 import { MapPin, Users, BookOpen, ArrowRight } from "lucide-react"
 import NewsletterForm from "@/components/ui/newsletter-form"
 import HomeEvents from "@/components/ui/home-events"
-import { HeroTitle } from "@/components/hero-title"
-import { HomeHeroSection } from "@/components/home-hero-section"
+import { HomeHeroSplit } from "@/components/home-hero-split"
 import type { HeroSlide } from "@/components/hero-slideshow"
 import { urlFor, sanityFetch, homePageQuery } from "@/lib/sanity"
 import type { Metadata } from "next"
@@ -99,30 +98,13 @@ export default async function Home() {
 
   return (
     <>
-      {/* Hero height = image aspect ratio from Sanity metadata; single image layer, no blur fill */}
-      <HomeHeroSection slides={heroSlidesFromSanity(pageData.hero)}>
-        <div className="container w-full animate-fade-in-up pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-[max(0.125rem,env(safe-area-inset-top,0px))] sm:pb-[max(1rem,env(safe-area-inset-bottom,0px))] sm:pt-[max(0.25rem,env(safe-area-inset-top,0px))] md:pb-0 md:pt-0">
-          <div className="w-full max-w-2xl space-y-[clamp(0.375rem,1.8vw,1rem)] text-left sm:space-y-4">
-            <HeroTitle
-              title={pageData.hero.title}
-              className="text-[clamp(0.9375rem,0.32rem+3.4vw,3.75rem)] font-bold tracking-tight text-white drop-shadow-md break-words max-sm:[line-height:1.06]"
-            />
-            <p className="text-pretty text-[clamp(0.75rem,0.18rem+1.6vw,1.5rem)] leading-snug text-white/90 drop-shadow sm:leading-relaxed">
-              {pageData.hero.subtitle}
-            </p>
-            <div className="flex justify-start pt-[clamp(0.375rem,1.2vw,1rem)] sm:pt-4">
-              <Button
-                asChild
-                className="!h-[clamp(1.875rem,1.05rem+2vw,2.75rem)] min-h-0 touch-manipulation !px-[clamp(0.55rem,0.3rem+1.5vw,2rem)] !py-0 text-[clamp(0.6875rem,0.5rem+0.5vw,1rem)] transition-all duration-300 hover:scale-110 hover:shadow-lg sm:!h-11 sm:!px-8 sm:!py-2 sm:text-base"
-              >
-                <Link href={pageData.hero.primaryButton.action === 'signup' ? '#signup' : pageData.hero.primaryButton.targetPage || '/'}>
-                  {pageData.hero.primaryButton.text}
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </HomeHeroSection>
+      {/* Split hero: text panel left, image panel right — equal-but-distinct territory. */}
+      <HomeHeroSplit
+        title={pageData.hero.title}
+        subtitle={pageData.hero.subtitle}
+        slides={heroSlidesFromSanity(pageData.hero)}
+        cta={pageData.hero.primaryButton}
+      />
 
       {/* Mission & Focus Section */}
       <section className="container py-12 md:py-24">

@@ -30,6 +30,16 @@ function getLargeScreenServerSnapshot() {
 const MEASURE_CLASS =
   "w-[42rem] max-w-none break-words text-left text-6xl font-bold leading-none tracking-tight [line-height:1]"
 
+/**
+ * Strip leading/trailing whitespace and collapse internal whitespace runs
+ * (spaces, tabs, newlines, NBSPs) into a single space. Keeps the headline
+ * measurement and letter animation from getting confused by stray spaces
+ * coming out of the CMS.
+ */
+function normalizeWhitespace(value: string): string {
+  return value.trim().replace(/\s+/g, " ")
+}
+
 function measureLines(title: string, container: HTMLDivElement): string[] {
   const segments = title.split(/(\s+)/)
   container.innerHTML = ""
@@ -123,6 +133,8 @@ export function HeroTitle({
   const measureRef = useRef<HTMLDivElement>(null)
   const [lines, setLines] = useState<string[] | null>(null)
 
+  const normalizedTitle = normalizeWhitespace(title)
+
   const useAnimated = useSyncExternalStore(
     subscribeLargeScreen,
     getLargeScreenSnapshot,
@@ -131,14 +143,14 @@ export function HeroTitle({
 
   useLayoutEffect(() => {
     const el = measureRef.current
-    if (!el || !title.trim()) {
-      setLines(title ? [title] : [])
+    if (!el || !normalizedTitle) {
+      setLines(normalizedTitle ? [normalizedTitle] : [])
       return
     }
-    setLines(measureLines(title, el))
-  }, [title])
+    setLines(measureLines(normalizedTitle, el))
+  }, [normalizedTitle])
 
-  const displayLines = lines ?? [title]
+  const displayLines = lines ?? (normalizedTitle ? [normalizedTitle] : [])
 
   const lineBlocks: ReactNode[] = []
   let letterOffset = 0

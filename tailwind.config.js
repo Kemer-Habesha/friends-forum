@@ -14,9 +14,15 @@ module.exports = {
       padding: "2rem",
       screens: {
         "2xl": "1400px",
+        "3xl": "1720px",
+        "4xl": "2200px",
       },
     },
     extend: {
+      screens: {
+        "3xl": "1920px",
+        "4xl": "2560px",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -56,6 +62,16 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        serif: [
+          "var(--font-cormorant)",
+          "ui-serif",
+          "Georgia",
+          "Cambria",
+          "Times New Roman",
+          "serif",
+        ],
       },
       keyframes: {
         "accordion-down": {
