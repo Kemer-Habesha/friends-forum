@@ -90,12 +90,17 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="container py-12 md:py-24">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <div className="space-y-4 animate-fade-in-up delay-300">
-            <h2 className="text-3xl font-bold tracking-tight transition-all duration-300 hover:text-primary">{pageData.history.title}</h2>
+      <section className="container py-12 md:py-24 lg:py-28">
+        <div className="space-y-8 md:space-y-10">
+          <div className="space-y-5 md:space-y-6 animate-fade-in-up delay-300">
+            <h2 className="text-3xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-110 hover:rotate-1">
+              {pageData.history.title}
+            </h2>
             {pageData.history.content.map((paragraph: string, index: number) => (
-              <p key={index} className="text-muted-foreground transition-all duration-300 hover:text-foreground">
+              <p
+                key={index}
+                className="text-muted-foreground text-base md:text-lg lg:text-xl leading-relaxed lg:leading-9 transition-all duration-300 hover:text-foreground"
+              >
                 {paragraph}
               </p>
             ))}

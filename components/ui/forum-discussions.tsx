@@ -1,11 +1,10 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import React, { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, MessageSquare, Users, Clock } from "lucide-react"
+import { Search, MessageSquare } from "lucide-react"
 import { urlFor } from "@/lib/sanity"
 
 interface Discussion {
@@ -21,6 +20,30 @@ interface Discussion {
     title?: string
     avatar?: any
   }
+}
+
+function renderDescriptionWithLinks(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g
+  const strictUrlRegex = /^https?:\/\/[^\s]+$/
+  const parts = text.split(urlRegex)
+
+  return parts.map((part, index) => {
+    if (strictUrlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline break-words hover:opacity-80"
+        >
+          {part}
+        </a>
+      )
+    }
+
+    return <React.Fragment key={index}>{part}</React.Fragment>
+  })
 }
 
 export default function ForumDiscussions({
@@ -84,7 +107,7 @@ export default function ForumDiscussions({
                       {discussion.title}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4 transition-all duration-500 group-hover:text-foreground">
-                      {discussion.description}
+                      {renderDescriptionWithLinks(discussion.description)}
                     </p>
                     {discussion.tags && discussion.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -98,20 +121,6 @@ export default function ForumDiscussions({
                         ))}
                       </div>
                     )}
-                  </div>
-                  <div className="flex flex-row md:flex-col items-center md:items-end gap-4 md:gap-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-500 group-hover:text-foreground">
-                      <MessageSquare className="h-4 w-4 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12" />
-                      <span>{discussion.replyCount} replies</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-500 group-hover:text-foreground">
-                      <Users className="h-4 w-4 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12" />
-                      <span>{discussion.participantCount} participants</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground transition-all duration-500 group-hover:text-foreground">
-                      <Clock className="h-4 w-4 transition-all duration-500 group-hover:scale-125 group-hover:rotate-12" />
-                      <span>{discussion.lastActivity}</span>
-                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">

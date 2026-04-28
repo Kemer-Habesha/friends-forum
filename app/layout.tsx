@@ -1,6 +1,6 @@
 import type React from "react"
 import "@/app/globals.css"
-import { Inter } from "next/font/google"
+import { Inter, Cormorant_Garamond } from "next/font/google"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import QueryProvider from "@/contexts/query-provider"
@@ -11,6 +11,14 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   adjustFontFallback: true,
+})
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
 })
 
 export const metadata = {
@@ -71,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={cormorant.variable}>
       <body className={inter.className}>
         <QueryProvider>
           <div className="flex flex-col min-h-screen">
