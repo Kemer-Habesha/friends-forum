@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin, Clock, Send } from "lucide-react"
 import { sanityFetch, contactPageQuery, urlFor } from "@/lib/sanity"
 import ContactForm from "@/components/ui/contact-form"
 import type { Metadata } from "next"
+import { buildTitle, SITE_URL } from "@/lib/seo"
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Mail,
@@ -15,21 +16,36 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 export async function generateMetadata(): Promise<Metadata> {
   const data = await sanityFetch<any>(contactPageQuery)
 
-  if (!data?.seo) return {}
-
-  const ogImage = data.seo.ogImage
+  const ogImage = data?.seo?.ogImage
     ? urlFor(data.seo.ogImage).width(1200).height(630).url()
     : undefined
 
+  const title = buildTitle(
+    data?.seo?.metaTitle,
+    data?.hero?.title || "Contact"
+  )
+  const description =
+    data?.seo?.metaDescription ||
+    "Get in touch with FRIENDS Forum for inquiries, collaboration opportunities, or to learn more about our work."
+
   return {
-    title: data.seo.metaTitle ?? data.title,
-    description: data.seo.metaDescription,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: "/contact" },
     openGraph: {
-      title: data.seo.metaTitle ?? data.title,
-      description: data.seo.metaDescription,
+      title,
+      description,
+      url: `${SITE_URL}/contact`,
+      type: "website",
       ...(ogImage && {
         images: [{ url: ogImage, width: 1200, height: 630 }],
       }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage && { images: [ogImage] }),
     },
   }
 }
@@ -216,7 +232,7 @@ export default async function ContactPage() {
                 />
               ) : (
                 <Image
-                  src="/placeholder.svg?height=300&width=600"
+                  src="/placeholder.svg"
                   alt="Office Location Map"
                   fill
                   className="object-cover"

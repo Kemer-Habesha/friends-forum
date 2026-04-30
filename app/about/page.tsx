@@ -4,6 +4,7 @@ import { Users, BookOpen, Droplet, Lightbulb } from "lucide-react"
 import { urlFor, sanityFetch, aboutPageQuery } from "@/lib/sanity"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import type { Metadata } from "next"
+import { buildTitle, SITE_URL } from "@/lib/seo"
 
 const iconMap: Record<string, any> = {
   BookOpen,
@@ -15,17 +16,31 @@ const iconMap: Record<string, any> = {
 export async function generateMetadata(): Promise<Metadata> {
   const data = await sanityFetch<any>(aboutPageQuery)
 
-  if (!data?.seo) return {}
+  const ogImage = data?.seo?.ogImage
+    ? urlFor(data.seo.ogImage).width(1200).height(630).url()
+    : undefined
 
-  const ogImage = data.seo.ogImage ? urlFor(data.seo.ogImage).width(1200).height(630).url() : undefined
+  const title = buildTitle(data?.seo?.metaTitle, data?.hero?.title || "About")
+  const description =
+    data?.seo?.metaDescription ||
+    "Learn about FRIENDS Forum's mission to promote research, collaboration, and development across the Nile Basin region."
 
   return {
-    title: data.seo.metaTitle ?? data.title,
-    description: data.seo.metaDescription,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: "/about" },
     openGraph: {
-      title: data.seo.metaTitle ?? data.title,
-      description: data.seo.metaDescription,
+      title,
+      description,
+      url: `${SITE_URL}/about`,
+      type: "website",
       ...(ogImage && { images: [{ url: ogImage, width: 1200, height: 630 }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage && { images: [ogImage] }),
     },
   }
 }
@@ -50,10 +65,19 @@ export default async function AboutPage() {
         <div className="container relative z-10">
           <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
             <div className="space-y-4 animate-slide-in-bottom">
-              <h1 className="text-4xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-105 hover:rotate-1">
+              {/*
+                aria-label exposes the flat title to screen readers and search
+                crawlers; the per-word <span>s only carry the staggered
+                animation, so they're aria-hidden to avoid double-announcement.
+              */}
+              <h1
+                aria-label={pageData.hero.title}
+                className="text-4xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-105 hover:rotate-1"
+              >
                 {pageData.hero.title.split(' ').map((word: string, index: number) => (
                   <span
                     key={index}
+                    aria-hidden="true"
                     className="inline-block transition-all duration-500 hover:scale-110 hover:rotate-3 hover:text-primary animate-bounce-in mr-2"
                     style={{
                       animationDelay: `${index * 200}ms`,

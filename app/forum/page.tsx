@@ -3,25 +3,41 @@ import { sanityFetch, forumPageQuery, urlFor } from "@/lib/sanity"
 import ActionButton from "@/components/ui/action-button"
 import ForumDiscussions from "@/components/ui/forum-discussions"
 import type { Metadata } from "next"
+import { buildTitle, SITE_URL } from "@/lib/seo"
 
 export async function generateMetadata(): Promise<Metadata> {
   const data = await sanityFetch<any>(forumPageQuery)
 
-  if (!data?.seo) return {}
-
-  const ogImage = data.seo.ogImage
+  const ogImage = data?.seo?.ogImage
     ? urlFor(data.seo.ogImage).width(1200).height(630).url()
     : undefined
 
+  const title = buildTitle(
+    data?.seo?.metaTitle,
+    data?.hero?.title || "Discussion Forum"
+  )
+  const description =
+    data?.seo?.metaDescription ||
+    "Join researchers, experts, and stakeholders in discussions about the Nile Basin, water resources, and development."
+
   return {
-    title: data.seo.metaTitle ?? data.title,
-    description: data.seo.metaDescription,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: "/forum" },
     openGraph: {
-      title: data.seo.metaTitle ?? data.title,
-      description: data.seo.metaDescription,
+      title,
+      description,
+      url: `${SITE_URL}/forum`,
+      type: "website",
       ...(ogImage && {
         images: [{ url: ogImage, width: 1200, height: 630 }],
       }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage && { images: [ogImage] }),
     },
   }
 }
@@ -49,12 +65,20 @@ export default async function ForumPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 animate-fade-in-scale delay-100" />
         <div className="container relative z-10">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-up">
+            {/*
+              aria-label exposes the flat title to assistive tech / Googlebot;
+              per-letter spans below are decorative only.
+            */}
+            <h1
+              aria-label={pageData.hero?.title || "Discussion Forum"}
+              className="text-4xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-up"
+            >
               {(pageData.hero?.title || "Discussion Forum")
                 .split("")
                 .map((letter: string, index: number) => (
                   <span
                     key={index}
+                    aria-hidden="true"
                     className="inline-block transition-all duration-300 hover:scale-125 hover:rotate-12 hover:text-primary animate-bounce-in"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >

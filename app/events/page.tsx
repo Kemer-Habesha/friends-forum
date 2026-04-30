@@ -5,21 +5,40 @@ import { urlFor, sanityFetch, eventsPageQuery } from "@/lib/sanity"
 import UpcomingEvents from "@/components/ui/upcoming-events"
 import ActionButton from "@/components/ui/action-button"
 import type { Metadata } from "next"
+import { JsonLd } from "@/components/seo/json-ld"
+import { buildTitle, eventSchema, SITE_URL } from "@/lib/seo"
 
 export async function generateMetadata(): Promise<Metadata> {
   const data = await sanityFetch<any>(eventsPageQuery)
 
-  if (!data?.seo) return {}
+  const ogImage = data?.seo?.ogImage
+    ? urlFor(data.seo.ogImage).width(1200).height(630).url()
+    : undefined
 
-  const ogImage = data.seo.ogImage ? urlFor(data.seo.ogImage).width(1200).height(630).url() : undefined
+  const title = buildTitle(
+    data?.seo?.metaTitle,
+    data?.hero?.title || "Events & Meetings"
+  )
+  const description =
+    data?.seo?.metaDescription ||
+    "Upcoming and past events from FRIENDS Forum: webinars, conferences, and dialogues focused on the Nile Basin and beyond."
 
   return {
-    title: data.seo.metaTitle ?? data.title,
-    description: data.seo.metaDescription,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: "/events" },
     openGraph: {
-      title: data.seo.metaTitle ?? data.title,
-      description: data.seo.metaDescription,
+      title,
+      description,
+      url: `${SITE_URL}/events`,
+      type: "website",
       ...(ogImage && { images: [{ url: ogImage, width: 1200, height: 630 }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage && { images: [ogImage] }),
     },
   }
 }
@@ -51,17 +70,52 @@ export default async function EventsPage() {
     )
   }
 
+  /*
+   * Emit a Schema.org Event graph for each upcoming event so Google can
+   * surface them in the rich Events carousel. We only include events that
+   * have at least a title and start date — the validator rejects partial
+   * records.
+   */
+  const upcomingEventSchemas = (pageData.upcomingEvents?.events || [])
+    .filter((e: any) => e?.title && e?.startDate)
+    .map((e: any) =>
+      eventSchema({
+        title: e.title,
+        description: e.description,
+        startDate: e.startDate,
+        endDate: e.endDate,
+        location: e.location,
+        isVirtual: e.isVirtual,
+        registrationLink: e.registrationLink,
+        image: e.image ? urlFor(e.image).width(1200).height(630).url() : undefined,
+      })
+    )
+
   return (
     <>
+      {upcomingEventSchemas.length > 0 ? (
+        <JsonLd id="ld-events" schema={upcomingEventSchemas} />
+      ) : null}
+
       {/* Hero Section */}
       <section className="bg-muted py-12 md:py-24 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 animate-fade-in-scale delay-100" />
         <div className="container relative z-10">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-up">
+            {/*
+              Per-letter <span>s drive the staggered bounce-in. Screen readers
+              and search crawlers should see the title as a single string —
+              aria-label provides that, and aria-hidden on each letter prevents
+              double-announcement.
+            */}
+            <h1
+              aria-label={pageData.hero.title}
+              className="text-4xl font-bold tracking-tight transition-all duration-500 hover:text-primary hover:scale-105 animate-fade-in-up"
+            >
               {pageData.hero.title.split('').map((letter: string, index: number) => (
                 <span
                   key={index}
+                  aria-hidden="true"
                   className="inline-block transition-all duration-300 hover:scale-125 hover:rotate-12 hover:text-primary animate-bounce-in"
                   style={{
                     animationDelay: `${index * 50}ms`,
