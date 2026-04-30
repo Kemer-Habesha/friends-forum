@@ -26,7 +26,22 @@ const cormorant = Cormorant_Garamond({
 })
 
 export const metadata = {
-  title: "FRIENDS Forum - Nile Basin Research & Collaboration",
+  /*
+   * `title.template` lets sub-pages set a short title (e.g. "About") and
+   * Next.js auto-suffixes the brand. Pages that prefer to keep the brand
+   * inside their own title still work — they just need to use
+   * `title: { absolute: '…' }` in their generateMetadata return value.
+   */
+  title: {
+    default: "FRIENDS Forum - Nile Basin Research & Collaboration",
+    /*
+     * Brand-first format for consistency with editor-set titles in Sanity
+     * (e.g. "FRIENDS Forum - Events"). Pages that already include the brand
+     * inside their own title use `title: { absolute: '…' }` to bypass this
+     * template entirely.
+     */
+    template: "FRIENDS Forum - %s",
+  },
   description:
     "An international platform for research, knowledge exchange, and development support in the Nile Basin region.",
   keywords: ["Nile Basin", "Research", "Collaboration", "Development", "Forum"],
@@ -39,13 +54,20 @@ export const metadata = {
     telephone: false,
   },
   metadataBase: new URL("https://friendsforum.org"),
+  /*
+   * Layout-level canonical only acts as a default for pages that don't
+   * provide their own. EVERY content page below sets its own
+   * `alternates.canonical` in generateMetadata — without that, all sub-
+   * pages would canonicalize to "/" and Google would deindex them as
+   * duplicates. See app/{about,events,resources,forum,contact}/page.tsx.
+   */
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "FRIENDS Forum - Nile Basin Research & Collaboration",
     description: "An international platform for research, knowledge exchange, and development support in the Nile Basin region.",
-    url: "https://friendsforum.org",
+    url: "https://friendsforum.org/",
     siteName: "FRIENDS Forum",
     locale: "en_US",
     type: "website",

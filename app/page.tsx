@@ -8,6 +8,13 @@ import { HomeHeroSplit } from "@/components/home-hero-split"
 import type { HeroSlide } from "@/components/hero-slideshow"
 import { urlFor, sanityFetch, homePageQuery } from "@/lib/sanity"
 import type { Metadata } from "next"
+import { JsonLd } from "@/components/seo/json-ld"
+import {
+  buildTitle,
+  organizationSchema,
+  websiteSchema,
+  SITE_URL,
+} from "@/lib/seo"
 
 const iconMap: Record<string, any> = {
   BookOpen,
@@ -18,17 +25,40 @@ const iconMap: Record<string, any> = {
 export async function generateMetadata(): Promise<Metadata> {
   const data = await sanityFetch<any>(homePageQuery)
 
-  if (!data?.seo) return {}
+  const ogImage = data?.seo?.ogImage
+    ? urlFor(data.seo.ogImage).width(1200).height(630).url()
+    : undefined
 
-  const ogImage = data.seo.ogImage ? urlFor(data.seo.ogImage).width(1200).height(630).url() : undefined
+  /*
+   * `absolute` here means: don't apply the layout's "%s | FRIENDS Forum"
+   * template. The homepage already has the brand baked into its title.
+   */
+  const title = buildTitle(
+    data?.seo?.metaTitle,
+    data?.hero?.title || "Building Bridges Across the Nile Basin & Beyond"
+  )
+  const description =
+    data?.seo?.metaDescription ||
+    "An international platform for research, knowledge exchange, and development support in the Nile Basin region."
 
   return {
-    title: data.seo.metaTitle ?? data.title,
-    description: data.seo.metaDescription,
+    title: { absolute: title },
+    description,
+    alternates: {
+      canonical: "/",
+    },
     openGraph: {
-      title: data.seo.metaTitle ?? data.title,
-      description: data.seo.metaDescription,
+      title,
+      description,
+      url: `${SITE_URL}/`,
+      type: "website",
       ...(ogImage && { images: [{ url: ogImage, width: 1200, height: 630 }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage && { images: [ogImage] }),
     },
   }
 }
@@ -107,8 +137,29 @@ export default async function Home() {
     )
   }
 
+  /*
+   * Structured data for the homepage. Two graphs:
+   *   - Organization → powers the right-rail "knowledge panel" Google sometimes
+   *     shows for brand-name searches.
+   *   - WebSite      → declares the site identity; potentialAction would also
+   *     unlock the sitelinks searchbox once we expose a /search route.
+   */
+  const orgLogo = `${SITE_URL}/favicon.png`
+  const orgDescription =
+    pageData.seo?.metaDescription ||
+    "An international platform for research, knowledge exchange, and development support in the Nile Basin region."
+
   return (
     <>
+      <JsonLd
+        id="ld-organization"
+        schema={organizationSchema({
+          logoUrl: orgLogo,
+          description: orgDescription,
+        })}
+      />
+      <JsonLd id="ld-website" schema={websiteSchema()} />
+
       {/* Split hero: text panel left, image panel right — equal-but-distinct territory. */}
       <HomeHeroSplit
         title={pageData.hero.title}

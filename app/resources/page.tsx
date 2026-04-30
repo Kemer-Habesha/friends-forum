@@ -5,6 +5,7 @@ import { urlFor, sanityFetch, resourcesPageQuery } from "@/lib/sanity"
 import FeaturedResources from "@/components/ui/featured-resources"
 import VideoGallery from "@/components/ui/video-gallery"
 import type { Metadata } from "next"
+import { buildTitle, SITE_URL } from "@/lib/seo"
 
 const iconMap: Record<string, any> = {
   FileText,
@@ -16,17 +17,41 @@ const iconMap: Record<string, any> = {
 export async function generateMetadata(): Promise<Metadata> {
   const data = await sanityFetch<any>(resourcesPageQuery)
 
-  if (!data?.seo) return {}
+  const ogImage = data?.seo?.ogImage
+    ? urlFor(data.seo.ogImage).width(1200).height(630).url()
+    : undefined
 
-  const ogImage = data.seo.ogImage ? urlFor(data.seo.ogImage).width(1200).height(630).url() : undefined
+  /*
+   * The current Sanity content for /resources has a description-length
+   * string saved in seo.metaTitle. buildTitle() rejects titles outside
+   * the 5–80 char range so we fall back to the hero title (or the doc
+   * title) and auto-suffix the brand. Editors can fix the metaTitle in
+   * Sanity Studio at any time and this page will pick it up automatically.
+   */
+  const title = buildTitle(
+    data?.seo?.metaTitle,
+    data?.hero?.title || "Resources"
+  )
+  const description =
+    data?.seo?.metaDescription ||
+    "Research papers, case studies, reports, and videos covering water resources, climate, and development in the Nile Basin."
 
   return {
-    title: data.seo.metaTitle ?? data.title,
-    description: data.seo.metaDescription,
+    title: { absolute: title },
+    description,
+    alternates: { canonical: "/resources" },
     openGraph: {
-      title: data.seo.metaTitle ?? data.title,
-      description: data.seo.metaDescription,
+      title,
+      description,
+      url: `${SITE_URL}/resources`,
+      type: "website",
       ...(ogImage && { images: [{ url: ogImage, width: 1200, height: 630 }] }),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(ogImage && { images: [ogImage] }),
     },
   }
 }
@@ -50,10 +75,19 @@ export default async function ResourcesPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 animate-fade-in-scale" />
         <div className="container relative z-10">
           <div className="text-center space-y-4 max-w-3xl mx-auto">
-            <h1 className="text-4xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1 animate-bounce-in">
+            {/*
+              See note in app/events/page.tsx — aria-label provides the flat
+              title to assistive tech and search crawlers; per-letter spans
+              are decorative only.
+            */}
+            <h1
+              aria-label={pageData?.hero?.title || "Resources"}
+              className="text-4xl font-bold tracking-tight transition-all duration-700 hover:text-primary hover:scale-110 hover:rotate-1 animate-bounce-in"
+            >
               {(pageData?.hero?.title || 'Resources').split('').map((letter: string, index: number) => (
                 <span
                   key={index}
+                  aria-hidden="true"
                   className="inline-block transition-all duration-500 hover:scale-125 hover:rotate-12 hover:text-primary animate-fade-in-up"
                   style={{
                     animationDelay: `${index * 100}ms`,
@@ -152,7 +186,7 @@ export default async function ResourcesPage() {
               />
             ) : (
               <Image 
-                src="/placeholder.svg?height=400&width=600" 
+                src="/placeholder.svg" 
                 alt="Submit Resource" 
                 fill 
                 className="object-cover transition-all duration-300 hover:scale-110" 
