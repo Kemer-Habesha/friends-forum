@@ -1,46 +1,58 @@
-# Use Node.js 20 (Alpine for a smaller image)
-FROM node:20-alpine AS builder
+# syntax=docker/dockerfile:1.7
 
-# Set the working directory
+# ---------- 1. deps: install only production-ready node_modules ----------
+FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Copy only package files first for efficient caching
+# Alpine + libc6-compat for occasional native binaries (e.g. lightningcss optional dep).
+RUN apk add --no-cache libc6-compat
+
 COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps --no-audit --no-fund
 
-# Install dependencies (use `ci` for clean install)
-RUN npm ci --legacy-peer-deps
+# ---------- 2. builder: produce the Next.js standalone bundle ----------
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-# Copy the rest of the application files
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables for build time
+# Sanity environment must be available at build time (it's read by next/sanity at compile)
 ARG NEXT_PUBLIC_SANITY_PROJECT_ID
 ARG NEXT_PUBLIC_SANITY_DATASET
 ARG NEXT_PUBLIC_SANITY_API_VERSION
-
 ENV NEXT_PUBLIC_SANITY_PROJECT_ID=$NEXT_PUBLIC_SANITY_PROJECT_ID
 ENV NEXT_PUBLIC_SANITY_DATASET=$NEXT_PUBLIC_SANITY_DATASET
 ENV NEXT_PUBLIC_SANITY_API_VERSION=$NEXT_PUBLIC_SANITY_API_VERSION
 
-# Build the Next.js project
+# Disable telemetry so the build doesn't try to phone home from a sealed-network builder.
+ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN npm run build
 
-# Use a smaller runtime image
+# ---------- 3. runner: tiny runtime image ----------
 FROM node:20-alpine AS runner
-
 WORKDIR /app
 
-# Copy only necessary files from the builder stage
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/.next .next
-COPY --from=builder /app/public public
-COPY --from=builder /app/node_modules node_modules
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Set Google Cloud Run's expected PORT
+# Run as a non-root user for safety.
+RUN addgroup --system --gid 1001 nodejs \
+ && adduser  --system --uid 1001 --ingroup nodejs nextjs
+
+# `output: 'standalone'` produces these three things; together they're the entire runtime.
+# The standalone folder includes a minimal `node_modules` containing only the packages
+# actually required at runtime (typically ~60 MB vs ~870 MB of full deps).
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public           ./public
+
+USER nextjs
+
+# Cloud Run injects $PORT (defaults to 8080). Next's standalone server.js respects it.
 ENV PORT=8080
-
-# Expose the correct port
+ENV HOSTNAME=0.0.0.0
 EXPOSE 8080
 
-# Start the Next.js application
-CMD ["npm", "run", "start"]
+CMD ["node", "server.js"]

@@ -3,9 +3,7 @@ import "@/app/globals.css"
 import { Inter, Cormorant_Garamond } from "next/font/google"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
-import QueryProvider from "@/contexts/query-provider"
 import { ServiceWorkerRegister } from "@/components/service-worker-register"
-import CacheStatus from "@/components/cache-status"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,10 +11,16 @@ const inter = Inter({
   adjustFontFallback: true,
 })
 
+/*
+ * Cormorant Garamond is only used for the hero headline (font-medium = 500, normal style)
+ * and the italic "Nile Basin" emphasis (font-normal = 400, italic style). Loading just these
+ * two weights × two styles ships 4 font files (~120 KB) instead of the previous 8 (~240 KB).
+ * Add another weight here only if you start using Cormorant in 600/700 elsewhere.
+ */
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500"],
   style: ["normal", "italic"],
   variable: "--font-cormorant",
 })
@@ -81,15 +85,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={cormorant.variable}>
       <body className={inter.className}>
-        <QueryProvider>
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <ServiceWorkerRegister />
-          {process.env.NODE_ENV === 'development' && <CacheStatus />}
-        </QueryProvider>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
+        <ServiceWorkerRegister />
       </body>
     </html>
   )

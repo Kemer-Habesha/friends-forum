@@ -17,51 +17,71 @@ const DEFAULT_INTERVAL_MS = 6500
 export function HeroSlideshow({
   slides,
   intervalMs = DEFAULT_INTERVAL_MS,
-  index: controlledIndex,
-  onIndexChange,
   fill = false,
   imageClassName,
   sizes = "100vw",
+  showDots = false,
+  dotsClassName,
+  pauseOnHover = true,
+  objectFit = "cover",
 }: {
   slides: HeroSlide[]
   intervalMs?: number
-  /** When set with `onIndexChange`, slideshow is controlled (e.g. for external dot indicators). */
-  index?: number
-  onIndexChange?: (index: number) => void
   /** Fill the nearest positioned ancestor instead of sizing by the active slide's aspect ratio. */
   fill?: boolean
-  /** Extra classes applied to each <Image>; used for effects like hover zoom or desaturation. */
+  /** Extra classes applied to each foreground <Image>; used for effects like desaturation. */
   imageClassName?: string
-  /** Passed through to next/image sizes prop. */
+  /** Passed through to next/image sizes prop for the foreground image. */
   sizes?: string
+  /** Render built-in indicator dots when there is more than one slide. */
+  showDots?: boolean
+  /** Extra positioning classes for the dots container. */
+  dotsClassName?: string
+  /** Pause autoplay while the slideshow is hovered. */
+  pauseOnHover?: boolean
+  /**
+   * `cover` (default): images fill the panel and crop overflow.
+   * `contain`: images are shown in their entirety; leftover space falls back to whatever the
+   * panel's background colour is (clean magazine-style letterbox).
+   * `auto`: decides per-slide based on its aspect ratio — landscape-ish photos use `cover`
+   * (fill the panel, no top/bottom gaps), portrait/odd-ratio photos use `contain`.
+   */
+  objectFit?: "cover" | "contain" | "auto"
 }) {
-  const [internalIndex, setInternalIndex] = useState(0)
-  const controlled =
-    typeof controlledIndex === "number" && typeof onIndexChange === "function"
-  const index = controlled ? controlledIndex : internalIndex
-  const setIndex = controlled ? onIndexChange! : setInternalIndex
+  const [index, setIndex] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
 
   const indexRef = useRef(index)
   indexRef.current = index
 
   const count = slides.length
 
+  // Pause autoplay when the tab is hidden — saves CPU and avoids skipping ahead on tab return.
   useEffect(() => {
-    if (count <= 1) return
+    if (typeof document === "undefined") return
+    const handle = () => setIsVisible(!document.hidden)
+    handle()
+    document.addEventListener("visibilitychange", handle)
+    return () => document.removeEventListener("visibilitychange", handle)
+  }, [])
+
+  useEffect(() => {
+    if (count <= 1 || !isVisible) return
+    if (pauseOnHover && isHovered) return
+    if (typeof window === "undefined") return
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
     if (mq.matches) return
     const id = window.setInterval(() => {
-      const next = (indexRef.current + 1) % count
-      setIndex(next)
+      setIndex((current) => (current + 1) % count)
     }, intervalMs)
     return () => window.clearInterval(id)
-  }, [count, intervalMs, setIndex])
+  }, [count, intervalMs, isHovered, isVisible, pauseOnHover])
 
+  // Clamp index if slides shrink at runtime.
   useEffect(() => {
-    if (controlledIndex !== undefined && controlledIndex >= count) {
-      onIndexChange?.(0)
-    }
-  }, [count, controlledIndex, onIndexChange])
+    if (index >= count && count > 0) setIndex(0)
+  }, [count, index])
 
   /**
    * LCP: only the first hero image should compete for bandwidth on first paint. All slides were
@@ -104,14 +124,20 @@ export function HeroSlideshow({
     : "relative w-full overflow-hidden bg-black"
 
   return (
-    <div className={rootClass} style={fill ? undefined : aspectStyle}>
+    <div
+      className={rootClass}
+      style={fill ? undefined : aspectStyle}
+      onMouseEnter={pauseOnHover ? () => setIsHovered(true) : undefined}
+      onMouseLeave={pauseOnHover ? () => setIsHovered(false) : undefined}
+    >
       {slides.map((slide, i) => {
         const isActive = i === index
         const showImage = shouldRenderSlideImage(i)
+        const slideFit = resolveSlideFit(slide, objectFit)
         return (
           <div
             key={`${slide.src}-${i}`}
-            className="absolute inset-0 overflow-hidden transition-opacity duration-hero-crossfade ease-in-out"
+            className="absolute inset-0 overflow-hidden transition-opacity duration-700 ease-in-out"
             style={{
               opacity: isActive ? 1 : 0,
               zIndex: isActive ? 1 : 0,
@@ -126,17 +152,74 @@ export function HeroSlideshow({
                 fill
                 sizes={sizes}
                 className={cn(
-                  "object-cover object-center [transform:translateZ(0)]",
+                  slideFit === "contain"
+                    ? "object-contain object-center"
+                    : "object-cover object-center",
                   imageClassName
                 )}
-                priority={i === 0 && index === 0}
-                loading={i === 0 && index === 0 ? "eager" : "lazy"}
-                fetchPriority={i === 0 && index === 0 ? "high" : "low"}
+                priority={i === 0}
+                loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "low"}
               />
             ) : null}
           </div>
         )
       })}
+
+      {showDots && count > 1 ? (
+        /*
+          Dots live inside a soft dark "pill" so they remain legible regardless of what
+          colour the underlying image is. The pill uses backdrop-blur so it gracefully
+          adapts to bright or busy backgrounds without darkening the photo itself.
+        */
+        <div
+          className={cn(
+            "absolute z-20 flex items-center gap-1.5 rounded-full bg-black/25 px-1.5 py-1 backdrop-blur-md ring-1 ring-white/10",
+            dotsClassName ?? "bottom-4 right-4 sm:bottom-6 sm:right-6 lg:bottom-8 lg:right-8"
+          )}
+          role="tablist"
+          aria-label="Hero image slides"
+        >
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              role="tab"
+              aria-selected={i === index}
+              aria-label={`Show slide ${i + 1} of ${count}`}
+              onClick={() => setIndex(i)}
+              className={cn(
+                "h-1.5 w-1.5 shrink-0 rounded-full transition-colors touch-manipulation",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white",
+                i === index
+                  ? "bg-white"
+                  : "bg-white/50 hover:bg-white/75"
+              )}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   )
+}
+
+/**
+ * Decide how a single slide should be fit into the panel.
+ *
+ * In `auto` mode, photos with a landscape-ish aspect ratio (≥ ~1.2) use `cover` so they fill
+ * the panel without leaving top/bottom gaps. Portraits and roughly-square photos use
+ * `contain` so they aren't cropped — the panel's background colour fills the leftover side
+ * space (clean magazine letterbox).
+ *
+ * The 1.2 threshold is intentionally a touch below 4:3 (1.33) so that 4:3 photos still get
+ * `cover` treatment — anything narrower than that is treated as portrait/odd-shape.
+ */
+function resolveSlideFit(
+  slide: HeroSlide,
+  mode: "cover" | "contain" | "auto"
+): "cover" | "contain" {
+  if (mode !== "auto") return mode
+  if (!slide.width || !slide.height) return "cover"
+  const ratio = slide.width / slide.height
+  return ratio >= 1.2 ? "cover" : "contain"
 }
