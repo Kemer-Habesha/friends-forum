@@ -2,33 +2,6 @@ import { createClient } from 'next-sanity'
 import imageUrlBuilder from '@sanity/image-url'
 import { apiVersion, dataset, projectId } from '@/sanity/env'
 
-// Cache configuration
-const CACHE_TIME = 30 * 1000
-const cache = new Map<string, { data: any; timestamp: number }>()
-
-// Cache utility functions
-function getCachedData(key: string) {
-  const cached = cache.get(key)
-  if (cached && Date.now() - cached.timestamp < CACHE_TIME) {
-    return cached.data
-  }
-  return null
-}
-
-function setCachedData(key: string, data: any) {
-  cache.set(key, { data, timestamp: Date.now() })
-}
-
-// Clear expired cache entries periodically
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, value] of cache.entries()) {
-    if (now - value.timestamp > CACHE_TIME) {
-      cache.delete(key)
-    }
-  }
-}, CACHE_TIME)
-
 export const client = createClient({
   projectId,
   dataset,
@@ -50,50 +23,7 @@ export async function sanityFetch<T>(
   })
 }
 
-// Cached client for better performance
-export const cachedClient = createClient({
-  projectId,
-  dataset,
-  apiVersion,
-  useCdn: false, // Disable CDN in production to see changes immediately
-  perspective: 'published',
-})
-
-// Enhanced cached client with memory caching
-export const enhancedCachedClient = {
-  ...cachedClient,
-  async fetch<T>(query: string, params?: any): Promise<T> {
-    const cacheKey = `${query}-${JSON.stringify(params || {})}`
-    
-    // Check memory cache first
-    const cached = getCachedData(cacheKey)
-    if (cached) {
-      return cached
-    }
-    
-    // Fetch from Sanity if not cached
-    const data = await cachedClient.fetch<T>(query, params)
-    
-    // Store in cache
-    setCachedData(cacheKey, data)
-    
-    return data
-  },
-  
-  // Function to clear cache for immediate updates
-  clearCache() {
-    cache.clear()
-  },
-  
-  // Function to refresh specific query
-  async refresh<T>(query: string, params?: any): Promise<T> {
-    const cacheKey = `${query}-${JSON.stringify(params || {})}`
-    cache.delete(cacheKey)
-    return await this.fetch<T>(query, params)
-  }
-}
-
-const builder = imageUrlBuilder(cachedClient)
+const builder = imageUrlBuilder(client)
 
 export function urlFor(source: any) {
   return builder.image(source)

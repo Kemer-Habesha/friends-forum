@@ -4,7 +4,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { prefetchPage } from "@/lib/prefetch"
 
 interface MenuItem {
   label: string
@@ -39,11 +38,6 @@ export default function HeaderNav({
     ? [...menuItems].sort((a, b) => a.order - b.order)
     : fallbackItems
 
-  const handleLinkHover = (link: string) => {
-    const pageKey = link === "/" ? "homePage" : link.slice(1) + "Page"
-    prefetchPage(pageKey)
-  }
-
   return (
     <header className="border-b sticky top-0 z-40 bg-background">
       <div className="container flex h-16 items-center justify-between py-4">
@@ -71,7 +65,6 @@ export default function HeaderNav({
                   ? "text-primary after:absolute after:bottom-[-18px] after:left-0 after:right-0 after:h-[3px] after:bg-primary"
                   : "text-muted-foreground hover:text-primary"
               }`}
-              onMouseEnter={() => handleLinkHover(item.link)}
             >
               {item.label}
             </Link>
@@ -118,7 +111,6 @@ export default function HeaderNav({
                       : "text-muted-foreground hover:text-primary"
                   }`}
                   onClick={() => setIsMenuOpen(false)}
-                  onMouseEnter={() => handleLinkHover(item.link)}
                 >
                   {isActive(item.link) && (
                     <span className="inline-block w-1 h-1 bg-primary rounded-full mr-2"></span>

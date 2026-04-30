@@ -55,6 +55,17 @@ function heroDimensionsFromSanity(img: {
   return { width: DEFAULT_HERO_W, height: DEFAULT_HERO_H }
 }
 
+/**
+ * Build the hero image source URL. Width / quality / format are NOT baked in here — the
+ * custom Sanity image loader (./lib/image-loader.mjs) appends `?w=&q=&auto=format` per
+ * srcset variant at request time, so the browser picks an appropriately sized image for
+ * its viewport (e.g. 750 px on a phone, 1920 px on a 4K monitor) and gets AVIF/WebP
+ * automatically.
+ */
+function optimizedHeroSrc(img: unknown) {
+  return urlFor(img).url()
+}
+
 function heroSlidesFromSanity(hero: {
   title?: string
   backgroundImage?: unknown
@@ -66,7 +77,7 @@ function heroSlidesFromSanity(hero: {
   }>
   if (fromArray.length > 0) {
     return fromArray.map((img) => ({
-      src: urlFor(img).url(),
+      src: optimizedHeroSrc(img),
       alt,
       ...heroDimensionsFromSanity(img),
     }))
@@ -75,7 +86,7 @@ function heroSlidesFromSanity(hero: {
     const img = hero.backgroundImage as { dimensions?: { width?: number; height?: number } }
     return [
       {
-        src: urlFor(hero.backgroundImage).url(),
+        src: optimizedHeroSrc(hero.backgroundImage),
         alt,
         ...heroDimensionsFromSanity(img),
       },
