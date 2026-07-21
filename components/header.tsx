@@ -6,7 +6,7 @@ export default async function Header() {
 
   const logoUrl = data?.logo ? urlFor(data.logo).url() : "/favicon.png"
   const siteTitle = data?.title || "FRIENDS Forum"
-  const menuItems = data?.navigation?.menuItems || null
+  const menuItems = data?.navigation?.menuItems || []
 
   return (
     <HeaderNav

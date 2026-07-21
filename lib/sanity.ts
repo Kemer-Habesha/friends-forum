@@ -145,7 +145,11 @@ export const eventsPageQuery = `*[_type == "eventsPage"][0] {
   title,
   hero {
     title,
-    subtitle
+    intro,
+    availableResources[] {
+      title,
+      author
+    }
   },
   upcomingEvents {
     title,
@@ -193,13 +197,19 @@ export const resourcesPageQuery = `*[_type == "resourcesPage"][0] {
   title,
   hero {
     title,
-    subtitle
+    subtitle,
+    intro,
+    availableResources[] {
+      title,
+      author
+    }
   },
   searchSection {
     placeholder
   },
   featuredResources {
     title,
+    subtitle,
     resources[] {
       title,
       description,
@@ -394,6 +404,32 @@ export const focusAreasQuery = `*[_type == "homePage"][0].focusAreas.focusAreas[
   description,
   icon,
   image
+}`
+
+// GROQ query for the Current Topics page
+export const currentTopicsPageQuery = `*[_type == "currentTopicsPage"][0] {
+  hero {
+    title,
+    subtitle
+  },
+  topicsSection {
+    title,
+    subtitle
+  },
+  topics[] {
+    title,
+    description,
+    categories,
+    status,
+    updated,
+    icon
+  },
+  cta {
+    title,
+    description,
+    buttonText
+  },
+  seo
 }`
 
 // GROQ query for site-wide settings

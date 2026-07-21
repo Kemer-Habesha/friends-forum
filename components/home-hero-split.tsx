@@ -119,7 +119,7 @@ export function HomeHeroSplit({
           {slides.length > 0 ? (
             <HeroSlideshow
               slides={slides}
-              intervalMs={6500}
+              intervalMs={4000}
               fill
               sizes="(min-width: 1024px) 58vw, 100vw"
               imageClassName="saturate-[0.92]"
