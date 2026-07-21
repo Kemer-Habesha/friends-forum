@@ -12,7 +12,7 @@ export type HeroSlide = {
   height: number
 }
 
-const DEFAULT_INTERVAL_MS = 6500
+const DEFAULT_INTERVAL_MS = 4000
 
 export function HeroSlideshow({
   slides,
@@ -137,7 +137,7 @@ export function HeroSlideshow({
         return (
           <div
             key={`${slide.src}-${i}`}
-            className="absolute inset-0 overflow-hidden transition-opacity duration-700 ease-in-out"
+            className="absolute inset-0 overflow-hidden transition-opacity duration-300 ease-in-out"
             style={{
               opacity: isActive ? 1 : 0,
               zIndex: isActive ? 1 : 0,

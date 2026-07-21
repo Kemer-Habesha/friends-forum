@@ -11,15 +11,6 @@ interface MenuItem {
   order: number
 }
 
-const fallbackItems: MenuItem[] = [
-  { label: "Home", link: "/", order: 0 },
-  { label: "About", link: "/about", order: 1 },
-  { label: "Events", link: "/events", order: 2 },
-  { label: "Resources", link: "/resources", order: 3 },
-  { label: "Forum", link: "/forum", order: 4 },
-  { label: "Contact", link: "/contact", order: 5 },
-]
-
 export default function HeaderNav({
   logoUrl,
   siteTitle,
@@ -27,16 +18,14 @@ export default function HeaderNav({
 }: {
   logoUrl: string
   siteTitle: string
-  menuItems: MenuItem[] | null
+  menuItems: MenuItem[]
 }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
 
   const isActive = (path: string) => pathname === path
 
-  const items = menuItems
-    ? [...menuItems].sort((a, b) => a.order - b.order)
-    : fallbackItems
+  const items = [...menuItems].sort((a, b) => a.order - b.order)
 
   return (
     <header className="border-b sticky top-0 z-40 bg-background">

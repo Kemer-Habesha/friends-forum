@@ -14,6 +14,33 @@ const iconMap: Record<string, any> = {
   Presentation: BookOpen,
 }
 
+// const heroResourcesFallback = [
+//     {
+//       title: "El Niño Forecast & Effect in the Nile Basin, June–September (JJAS) 2026",
+//       author: "NBI Publication",
+//     },
+//     {
+//       title: "From an Egyptian journalist, a misunderstood patriot",
+//       author: "Mahmoud Salem",
+//     },
+//     {
+//       title: "Economy-Wide Assessment of Potential Long-Term Impacts of the Grand Ethiopian Renaissance Dam (GERD) on Sudan",
+//       author: "Dr. Khalid Siddig et al.",
+//     },
+//     {
+//       title: "Who Owns the Nile",
+//       author: "Robert O. Collins",
+//     },
+//     {
+//       title: "Egypt & Sudan Ties: A Hinge or a Siamese Joint",
+//       author: "Commentary",
+//     },
+//     {
+//       title: "The Renaissance of Water",
+//       author: "Amen Gashaw · Harvard International Review · 8 min read · 08 Jan. 2021",
+//     },
+// ]
+
 export async function generateMetadata(): Promise<Metadata> {
   const data = await sanityFetch<any>(resourcesPageQuery)
 
@@ -68,13 +95,17 @@ export default async function ResourcesPage() {
     )
   }
 
+  const heroResources = pageData?.hero?.availableResources?.length
+    ? pageData.hero.availableResources
+    : []
+
   return (
     <>
       {/* Hero Section */}
-      <section className="bg-muted py-12 md:py-24 relative overflow-hidden">
+      <section className="bg-muted py-12 md:py-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 animate-fade-in-scale" />
         <div className="container relative z-10">
-          <div className="text-center space-y-4 max-w-3xl mx-auto">
+          <div className="text-center space-y-4 max-w-4xl mx-auto">
             {/*
               See note in app/events/page.tsx — aria-label provides the flat
               title to assistive tech and search crawlers; per-letter spans
@@ -98,8 +129,33 @@ export default async function ResourcesPage() {
               ))}
             </h1>
             <p className="text-xl text-muted-foreground transition-all duration-500 hover:text-foreground hover:scale-105 animate-fade-in-up delay-800">
-              {pageData?.hero?.subtitle || 'Access research papers, case studies, and reports related to the Nile Basin region.'}
+              {pageData?.hero?.intro || 'Browse the publications, analysis, and commentary available on this page.'}
             </p>
+            <div className="pt-5 text-left">
+              {heroResources.length > 0 ? (
+                <ol className="grid gap-x-8 gap-y-2 rounded-xl border bg-background/80 p-4 text-sm shadow-sm backdrop-blur-sm sm:grid-cols-2 sm:p-5">
+                  {heroResources.map((resource: any, index: number) => (
+                    <li key={`${resource.title}-${index}`} className="flex min-w-0 gap-2.5">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="line-clamp-2 leading-5 text-foreground">{resource.title}</span>
+                        {resource.author ? (
+                          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                            {resource.author}
+                          </span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <div className="rounded-xl border bg-background/80 p-4 text-sm text-muted-foreground shadow-sm backdrop-blur-sm">
+                  Add resources to the hero list in Sanity to display them here.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -107,8 +163,8 @@ export default async function ResourcesPage() {
       {/* Featured Resources - Client component for show more/less + download */}
       <section className="container py-12 md:py-24">
         <FeaturedResources
-          title={pageData?.featuredResources?.title || 'Featured Resources'}
-          subtitle={pageData?.featuredResources?.subtitle || 'Access our curated collection of research papers, case studies, and reports.'}
+          title={pageData?.featuredResources?.title || "Featured Resources"}
+          subtitle={pageData?.featuredResources?.subtitle || "Access our curated collection of research papers, case studies, and reports."}
           resources={pageData?.featuredResources?.resources}
         />
       </section>
